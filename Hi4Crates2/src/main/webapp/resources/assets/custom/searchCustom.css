@@ -1,0 +1,61 @@
+.vertical-divider {
+    border-left: 1px solid #ced4da; /* 선의 색 및 스타일 지정 */
+    height: 100%; /* 부모 열의 높이와 같게 만듭니다. */
+}
+.leftmd{
+    background-color: hsl(197, 80%, 95%);
+    border-top-left-radius: 10px; 
+    border-bottom-left-radius: 10px;
+}
+.rightmd{
+    background-color: white;
+    border-top-right-radius: 10px;
+    border-bottom-right-radius: 10px;
+}
+.leftmdTitle {
+    font-family: Arial, sans-serif;
+    margin-left: 10px;
+    font-weight: bold;
+    float: left;
+    font-size: 15px;
+}
+.leftmdContent{
+    font-family: Arial, sans-serif;
+    color: grey;
+    margin-left: 20px;
+}
+.f{
+    margin-top : 50px;
+}
+.leftmdContent .badge{
+    margin-left: 5px;
+    margin-top: -30px;
+    
+}
+.rightmdTime {
+    float: right; 
+    margin-right: 10px;
+    color: grey;
+}
+.rightmdNo{
+    margin-top : 40px;
+    font-size: 14px;
+    color : grey;
+}
+.rightmdName{
+    font-size: 30px;
+    margin-left: 20px;
+}
+.rightmdSubtitle {
+    font-size : 16px;
+    color: grey;
+    font-family: Arial, Helvetica, sans-serif;
+    font-weight: bolder;
+}
+.rigtmdSubcontent{
+    font-size : 13px;
+    color: black;
+    font-family: Arial, Helvetica, sans-serif;
+    position: absolute;
+    top: 167px; 
+}

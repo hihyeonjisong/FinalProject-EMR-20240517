@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.mapper.IEmpListMapper">
+
+
+	<select id="getEmpList" resultType="empListVO">
+		SELECT
+		    m.mem_name,
+		    m.mem_gender,
+		    m.mem_age,
+		    m.mem_regno1,
+		    m.mem_tel,
+		    m.mem_address1,
+		    m.mem_address2,
+		    m.mem_type,
+		    e.emp_no,
+		    e.emp_job,
+		    e.emp_hire_date,
+		    e.emp_leave_date,
+		    e.emp_leave,
+		    e.emp_licence
+		FROM
+		    member m,
+		    emp    e
+		WHERE
+		        m.mem_type = 'MT001'
+		    AND m.mem_no = e.mem_no
+		    AND m.mem_permission = 'Y'
+	</select>
+	
+	<update id="updateEmp" parameterType="hashMap">
+	
+		update 
+				emp
+		set 
+				emp_no=emp_no
+		<if test="columnName.equals('empJob')">,emp_job=#{value} </if>
+		<if test="columnName.equals('empLeaveDate')">,emp_leave_date=#{value} </if>
+		<if test="columnName.equals('empLeave')">,emp_leave=#{value} </if>
+		where 
+				emp_no=#{empNo}
+	</update>
+	
+
+</mapper>

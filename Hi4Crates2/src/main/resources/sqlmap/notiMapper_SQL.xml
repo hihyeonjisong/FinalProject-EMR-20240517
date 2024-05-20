@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.mapper.INotiMapper">
+	<select id="getNotiList" resultType="notiVO">
+		select 
+		    notification_no
+		    ,notification_content
+		    ,notification_date
+		    ,n.emp_no
+		    ,notification_person
+		    ,notification_type
+		from
+		    notification n,
+		    member m
+		where
+			m.mem_no = n.emp_no
+		and
+		    m.mem_id = #{memId}
+		and
+			notification_check = 'N'
+	</select>
+	
+	<update id="checkNoti">
+		update
+			notification
+		set
+			notification_check = 'Y'
+		where
+			notification_no = #{notificationNo}
+	</update>
+	
+	<insert id="insertAgreeNoti" parameterType="notiVO" useGeneratedKeys="true">
+			<selectKey keyProperty="notificationNo" resultType="notiVO" order="BEFORE">
+				SELECT NOTIFICATION_SEQ.NEXTVAL as notificationNo FROM DUAL
+			</selectKey>
+		insert into notification
+			(
+				notification_no, notification_content, notification_date, emp_no, notification_person, notification_check
+			)
+			values
+			(
+				#{notificationNo}, '연가 신청이 승인되었습니다.', sysdate, #{empNo}, 1, 'N'
+			)
+	</insert>
+	
+	<insert id="insertNoti" parameterType="notiVO" useGeneratedKeys="true">
+			<selectKey keyProperty="notificationNo" resultType="notiVO" order="BEFORE">
+				SELECT NOTIFICATION_SEQ.NEXTVAL as notificationNo FROM DUAL
+			</selectKey>
+		insert into notification
+			(
+				notification_no, notification_content, notification_date, emp_no, notification_person, notification_check, notification_type
+			)
+			values
+			(
+				#{notificationNo}, #{notificationContent}, sysdate, #{empNo}, #{notificationPerson}, 'N', #{notificationType}
+			)
+	</insert>
+		
+
+</mapper>

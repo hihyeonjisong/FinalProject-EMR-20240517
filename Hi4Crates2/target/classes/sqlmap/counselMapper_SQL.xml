@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.mapper.ICounselMapper">
+
+	<resultMap type="counselVO" id="counselList">
+		<id property="counselNo" column="counsel_no"/>
+		<result property="counselTitle" column="counsel_title"/>
+		<result property="counselQuestion" column="counsel_question"/>
+		<result property="counselDate" column="counsel_date"/>
+		<result property="counselAnswer" column="counsel_answer"/>
+		<result property="memName" column="mem_name"/>
+		<result property="empName" column="emp_name"/>
+		<result property="memEmail" column="mem_email"/>
+		<result property="careerName" column="CAREER_NAME"/>
+		
+	</resultMap>
+	
+
+	<select id="counselOne" resultMap="counselList">
+		SELECT
+			counsel_title,
+			counsel_question,
+			counsel_date,
+			counsel_answer,
+			m.mem_name,
+			em.mem_name emp_name,
+			em.mem_email,
+			d.career_name
+		FROM
+			counsel C
+        INNER JOIN
+            PATIENT P ON P.PATNT_NO = C.PATNT_NO
+        INNER JOIN
+            MEMBER M ON M.MEM_NO = P.MEM_NO
+        INNER JOIN
+            EMP E ON E.EMP_NO = C.EMP_NO
+        INNER JOIN
+            MEMBER EM ON EM.MEM_NO = E.MEM_NO
+        LEFT JOIN
+            DOCTOR_CAREER D ON D.EMP_NO = E.EMP_NO
+        WHERE
+            C.COUNSEL_NO = #{counselNo}
+	</select>
+
+</mapper>

@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.mapper.IChatMapper">
+
+	<insert id="createSoloChatRoom" useGeneratedKeys="true">
+	<selectKey keyProperty="chatRoomNo" resultType="int" order="BEFORE">
+		SELECT CHAT_ROOM_SEQ.NEXTVAL FROM DUAL
+	</selectKey>
+		INSERT INTO CHAT_ROOM
+			(
+			CHAT_ROOM_NO, CHAT_ROOM_DATE, CHAT_ROOM_NAME, MEM_NO, CHAT_ROOM_TYPE, CHAT_ROOM_NOP
+			)
+			VALUES
+			(
+			#{chatRoomNo}, sysdate, #{chatRoomName}, #{memNo}, #{chatRoomType}, #{chatRoomNop}
+			)
+	</insert>
+	
+	<insert id="insertSoloChatPerson">
+		INSERT INTO CHAT_PERSON
+			(
+			CHAT_PERSON_NO, CHAT_ROOM_NO, MEM_NO, MEM_NAME, CHAT_PERSON_STATUS
+			)
+			VALUES
+			(
+			CHAT_PERSON_SEQ.NEXTVAL, #{chatRoomNo}, #{memNo}, #{memName}, #{chatPersonStatus}
+			)
+	</insert>
+	
+	<insert id="sendChat">
+		INSERT INTO CHAT
+    	( 
+    	  CHAT_NO
+    	, CHAT_ROOM_NO
+    	, CHAT_LOG
+    	, CHAT_DATE
+    	, CHAT_SENDER
+    	, CHAT_UNREAD_COUNT 
+    	)
+    VALUES
+    	(
+    	CHAT_SEQ.NEXTVAL
+    	, #{chatRoomNo}
+    	, #{chatLog}
+    	, SYSDATE
+    	, #{chatSender}
+    	, (SELECT COUNT(*) FROM CHAT_PERSON WHERE CHAT_ROOM_NO = #{chatRoomNo} AND CHAT_PERSON_STATUS = '0')
+    	)
+	</insert>
+	<insert id="insertUnread">
+		INSERT INTO CHAT_UNREAD 
+		(
+		  CHAT_NO
+		, MEM_NO
+		, CHAT_ROOM_NO
+		)
+		SELECT 
+			  C.CHAT_NO
+			, CP.MEM_NO
+			, CP.CHAT_ROOM_NO
+		FROM CHAT C
+		JOIN CHAT_PERSON CP ON C.CHAT_ROOM_NO = CP.CHAT_ROOM_NO
+		WHERE 
+			CP.MEM_NO = (SELECT MEM_NO FROM CHAT_PERSON WHERE CHAT_ROOM_NO = CP.CHAT_ROOM_NO AND CHAT_PERSON_STATUS = '0')
+		AND 
+			CP.CHAT_PERSON_STATUS = '0' 
+		AND 
+			NOT EXISTS (
+    					SELECT 
+    						1
+					    FROM 
+					    	CHAT_UNREAD CU
+					    WHERE 
+					    	CU.CHAT_NO = C.CHAT_NO
+					    AND 
+					    	CU.MEM_NO = CP.MEM_NO
+					    AND 
+					    	CU.CHAT_ROOM_NO = CP.CHAT_ROOM_NO
+)
+		
+	</insert>
+	
+	<select id="getChatPersonList" resultType="chatPersonVO">
+		SELECT 
+			* 
+		FROM 
+			CHAT_PERSON 
+		WHERE 
+			CHAT_ROOM_NO = #{chatRoomNo}
+		 AND 
+            CHAT_PERSON_STATUS != 0
+	</select>
+	
+	<select id="getMyChatRoomList" resultType="chatRoomVO">
+		SELECT 
+		    CHAT_ROOM_NO,
+		    CHAT_ROOM_DATE,
+		    CHAT_ROOM_NAME,
+		    MEM_NO,
+		    CHAT_ROOM_TYPE,
+		    CHAT_ROOM_NOP,
+		    CHAT_LOG,
+		    OPPONENTNO,
+		    UNREADCHATNO,
+		    MEM_NAME,
+		    CHAT_DATE
+		FROM 
+		    (
+		        SELECT 
+		            CR.CHAT_ROOM_NO,
+		            CR.CHAT_ROOM_DATE,
+		            CR.CHAT_ROOM_NAME,
+		            CR.MEM_NO,
+		            CR.CHAT_ROOM_TYPE,
+		            CR.CHAT_ROOM_NOP,
+		            C.CHAT_LOG,
+		            CPP.MEM_NO AS OPPONENTNO,
+		            CU.CHAT_NO AS UNREADCHATNO,
+		            M.MEM_NAME,
+		            C.CHAT_DATE,
+		            ROW_NUMBER() OVER (PARTITION BY CR.CHAT_ROOM_NO ORDER BY C.CHAT_DATE DESC) AS RN
+		        FROM 
+		            CHAT_ROOM CR
+		        INNER JOIN 
+		            CHAT_PERSON CP ON CR.CHAT_ROOM_NO = CP.CHAT_ROOM_NO
+		        INNER JOIN 
+		            CHAT C ON C.CHAT_ROOM_NO = CR.CHAT_ROOM_NO
+		        INNER JOIN
+		            CHAT_PERSON CPP ON CR.CHAT_ROOM_NO = CPP.CHAT_ROOM_NO
+		        LEFT JOIN
+		            CHAT_UNREAD CU ON CU.CHAT_ROOM_NO = CR.CHAT_ROOM_NO AND CU.MEM_NO = CP.MEM_NO
+		        INNER JOIN
+		            MEMBER M ON M.MEM_NO = CPP.MEM_NO
+		        WHERE 
+		            CP.MEM_NO = #{memNo}
+		        AND 
+		            CPP.MEM_NO != CP.MEM_NO
+		    )
+		WHERE 
+		    RN = 1           
+	</select>
+	<select id="getSoloRoomChat" resultType="chatVO">
+		SELECT 
+		      C.CHAT_NO
+		    , CR.CHAT_ROOM_NO
+		    , M.MEM_NAME
+		    , C.CHAT_SENDER
+		    , C.CHAT_DATE
+		    , C.CHAT_LOG
+		    , C.CHAT_UNREAD_COUNT
+		FROM
+		    CHAT C
+		INNER JOIN
+		    CHAT_ROOM CR ON C.CHAT_ROOM_NO = CR.CHAT_ROOM_NO
+		INNER JOIN
+		    MEMBER M ON M.MEM_NO = C.CHAT_SENDER
+		WHERE
+		    C.CHAT_ROOM_NO = #{chatRoomNo}
+		ORDER BY C.CHAT_DATE ASC
+	</select>
+	
+	<update id="enterChat">
+		UPDATE
+			CHAT_PERSON
+		SET
+			CHAT_PERSON_STATUS = '1'
+		WHERE
+			MEM_NO = #{memNo}
+		AND
+			CHAT_ROOM_NO = #{chatRoomNo}
+	</update>
+	<update id="outChat">
+		UPDATE
+			CHAT_PERSON
+		SET
+			CHAT_PERSON_STATUS = '0'
+		WHERE
+			MEM_NO = #{memNo}
+		AND
+			CHAT_ROOM_NO = #{chatRoomNo}
+	</update>
+</mapper>

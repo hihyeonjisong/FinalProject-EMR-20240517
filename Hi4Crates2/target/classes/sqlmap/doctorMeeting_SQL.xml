@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.mapper.IDoctorMeetingMapper">
+
+	<insert id="insertMeetingRecord" parameterType="meetingVO">
+		<selectKey keyProperty="meetingNo" order="BEFORE" resultType="int">
+        	SELECT meeting_seq.nextval AS meetingNo FROM DUAL
+    	</selectKey>
+		INSERT INTO meeting (
+		    meeting_no
+		    , meeting_date
+		    , meeting_start_time
+		    , meeting_starter
+		) VALUES (
+		    #{meetingNo}
+		    , #{meetingDate}
+		    , #{meetingStarttime}
+		    , #{meetingStarter}
+		)
+	</insert>
+	
+	<update id="recordingMeeting" parameterType="meetingVO">
+		UPDATE meeting
+		SET
+		    meeting_end_time = #{meetingEndtime} 
+		WHERE meeting_no = #{meetingNo}
+	</update>
+	
+	<insert id="insertMeetingPerson" parameterType="meetingPersonVO">
+		INSERT INTO meeting_person (
+			meeting_person_no
+			, emp_no
+			, meeting_no
+		) VALUES (
+			meeting_person_seq.nextval
+			, #{empNo}
+			, #{meetingNo}
+		)
+	</insert>
+	
+	<select id="getEmpList" resultType="treeViewVO">
+		SELECT 
+		    LEVEL
+		    , e.EMP_NO as id
+		    , e.emp_department
+		    , CASE WHEN e.EMP_DEPARTMENT IS NULL THEN '' 
+		    	   ELSE e.EMP_DEPARTMENT || ' ' 
+		    	   END || m1.MEM_NAME || ' ' || e.EMP_JOB as text
+		    , CONNECT_BY_ISLEAF "leaf"
+		    , e.EMP_SUPERIOR as parent
+		    , m2.MEM_NAME AS SUPERIOR_NAME
+		FROM EMP e
+		JOIN MEMBER m1 ON e.MEM_NO = m1.MEM_NO
+		LEFT JOIN EMP superior ON e.EMP_SUPERIOR = superior.EMP_NO
+		LEFT JOIN MEMBER m2 ON superior.MEM_NO = m2.MEM_NO
+        WHERE m1.emp_job = '의사'
+		START WITH e.EMP_SUPERIOR IS NULL
+		CONNECT BY PRIOR e.EMP_NO = e.EMP_SUPERIOR
+	</select>
+	
+	<select id="getMeetingRecord" resultType="meetingVO">
+		SELECT
+		    m.meeting_no,
+		    m.meeting_date,
+		    m.meeting_start_time,
+		    m.meeting_end_time,
+		    mem.mem_name as meeting_starter,
+		    COUNT(mp.meeting_person_no) AS meeting_person_count
+		FROM
+		    meeting m
+		    INNER JOIN meeting_person mp ON m.meeting_no = mp.meeting_no
+		    INNER JOIN emp e ON m.meeting_starter = e.emp_no
+		    INNER JOIN member mem ON e.mem_no = mem.mem_no
+		GROUP BY
+		    m.meeting_no,
+		    m.meeting_date,
+		    m.meeting_start_time,
+		    m.meeting_end_time,
+		    mem.mem_name
+	</select>
+</mapper>

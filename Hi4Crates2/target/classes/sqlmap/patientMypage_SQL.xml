@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.mapper.IPatientMypageMapper">
+
+	<select id="reservList" parameterType="Integer" resultType= "ClinicReservationVO">
+		SELECT RESERV_NO, RESERV_DATE, RESERV_TIME
+		FROM CLINIC_RESERVATION
+		WHERE MEM_NO = #{memNo}
+		ORDER BY RESERV_DATE DESC, RESERV_TIME ASC
+	</select>
+	
+	<select id="selectOne" resultType="memberVO">
+		SELECT MEM_NO, MEM_ID, MEM_PW, MEM_EMAIL, MEM_NAME,
+		MEM_AGE, MEM_GENDER, MEM_REGNO1, MEM_REGNO2, MEM_TEL,
+		MEM_ADDTEL, MEM_ADDRESS1, MEM_ADDRESS2, MEM_SIGNUP_DATE, MEM_POSTCODE
+		FROM member
+		WHERE MEM_NO = #{memNo}
+	</select>
+	
+	<update id="updateAccount" parameterType="memberVO">
+		UPDATE member
+		SET 
+		    MEM_NAME = #{memName},
+		    MEM_TEL = #{memTel},
+		    MEM_ADDTEL = #{memAddtel},
+		    MEM_POSTCODE = #{memPostcode},
+		    MEM_ADDRESS1 = #{memAddress1},
+		    MEM_ADDRESS2 = #{memAddress2}
+		WHERE MEM_NO = #{memNo}
+	</update>
+	
+	<select id="checkPw" resultType ="memberVO">
+		select mem_pw
+		from member
+		where mem_no = #{memNo}
+	</select>
+	
+	<update id="changePw" parameterType="memberVO">
+		update member
+		set mem_pw = #{memPw}
+		where mem_no = #{memNo}
+	</update>
+	
+	<update id="deleteAccount" parameterType="memberVO">
+		update member
+		set MEM_WITHDRAW = 'Y',
+			MEM_WITHDRAW_REASON = #{memWithDrawReason},
+			MEM_WITHDRAW_DATE = sysdate
+		where mem_no = #{memNo}
+	</update>
+	
+	<select id="counselList" resultType="counselVO">
+		select c.counsel_no, c.counsel_title, c.counsel_date
+		    from counsel c, patient p, member m
+		    where m.mem_no = p.mem_no
+		    and p.patnt_no = c.patnt_no
+		    and p.mem_no = #{memNo}
+	</select>
+	
+	<select id="eList" resultType="EvaluationVO">
+			select evl_content, evl_score, evl_date, ev.receipt_no , p.patnt_no, d.mem_name, r.receipt_date
+			from evaluation ev, receipt r, patient p, emp e, member d, member m
+			where ev.receipt_no = r.receipt_no
+				and r.patnt_no = p.patnt_no
+                and p.mem_no = m.mem_no
+				and r.emp_no = e.emp_no
+				and d.mem_no = e.mem_no
+				and m.mem_no = #{memNo}
+			order by r.receipt_date desc
+	</select>
+	
+	<delete id="delCReserv" parameterType="ClinicReservationVO">
+		DELETE FROM CLINIC_RESERVATION
+			WHERE RESERV_NO = #{reservNo}
+	</delete>
+	
+	<select id="recentReserve" resultType="ClinicReservationVO">
+		<![CDATA[
+		SELECT RESERV_NO, RESERV_DATE, RESERV_TIME
+		FROM (
+		    SELECT RESERV_NO, RESERV_DATE, RESERV_TIME
+		    FROM CLINIC_RESERVATION
+		    WHERE MEM_NO = #{memNo}
+		    AND RESERV_STATUS = 'Y'
+		    AND RESERV_DATE <= TRUNC(SYSDATE)
+		    ORDER BY RESERV_DATE DESC, RESERV_TIME DESC
+		)
+		WHERE ROWNUM = 1
+		]]>
+	</select>
+
+	<select id="willVisit" resultType="ClinicReservationVO">
+		<![CDATA[
+		SELECT RESERV_NO, SUBSTR(RESERV_DATE, 0, 8) AS RESERV_DATE, TO_CHAR(RESERV_TIME, 'HH24:MI') AS RESERV_TIME
+		FROM (
+		    SELECT RESERV_NO, RESERV_DATE, TO_DATE(RESERV_TIME, 'HH24:MI') AS RESERV_TIME
+		    FROM CLINIC_RESERVATION
+		    WHERE MEM_NO = #{memNo}
+		    AND RESERV_STATUS = 'N'
+		    AND RESERV_DATE >= TRUNC(SYSDATE) 
+		    ORDER BY RESERV_DATE DESC, RESERV_TIME DESC
+		)
+		WHERE ROWNUM = 1
+		]]>
+	</select>
+
+</mapper>

@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.mapper.IDoctorRoundMapper">
+
+	<resultMap type="memberVO" id="recordListMap">
+		<id property="chartNo" column="chart_no"/>
+		<result property="chartNo" column="chart_no"/>
+		<result property="memNo" column="mem_no"/>
+		<result property="patntNo" column="patnt_no"/>
+		<result property="memName" column="mem_name"/>
+		<result property="chartDate" column="chart_date"/>
+		<collection property="orderList" resultMap="orderListMap"/>
+	</resultMap>
+	
+	<resultMap type="orderVO" id="orderListMap">
+		<id property="orderNo" column="order_no"/>
+		<result property="orderCode" column="order_name"/>
+	</resultMap>
+
+	<!-- resultMap으로 변경 chartNo id로 -->
+	<select id="getPatntRecordsList" parameterType="int" resultMap="recordListMap">
+		SELECT 
+		    m.mem_no
+		    , p.patnt_no
+		    , m.mem_name
+		    , hr.hsptlz_start_date
+		    , mem.mem_name
+		    , ch.chart_no 
+		    , ch.chart_date 
+		    , o.order_no
+		    , o.body_code
+		FROM 
+		    chart ch
+		INNER JOIN 
+		    "ORDER" o ON ch.chart_no = o.chart_no
+		INNER JOIN 
+		    patient p ON ch.patnt_no = p.patnt_no
+		INNER JOIN 
+		    member m ON p.mem_no = m.mem_no
+		INNER JOIN 
+		    emp e ON o.emp_no = e.emp_no
+		INNER JOIN 
+		    member mem ON e.mem_no = mem.mem_no
+		LEFT JOIN 
+		    hospitalization_record hr ON o.order_no = hr.order_no
+		WHERE p.patnt_no = #{patntNo}
+		order by ch.chart_date desc
+	</select>
+	
+	<select id="getPatntRecordInfo" parameterType="int" resultType="memberVO">
+		SELECT 
+		    m.mem_name
+		    , m.mem_age
+		    , m.mem_gender
+		    , mem.mem_name as emp_name
+		    , hr.hsptlz_start_date
+		    , ch.chart_record
+		FROM 
+		    patient p
+		    INNER JOIN chart ch ON p.patnt_no = ch.patnt_no
+		    INNER JOIN "ORDER" o ON ch.chart_no = o.chart_no
+		    INNER JOIN emp e ON o.emp_no = e.emp_no
+		    INNER JOIN member mem ON e.mem_no = mem.mem_no
+		    INNER JOIN member m ON p.mem_no = m.mem_no
+		    LEFT JOIN hospitalization_record hr ON hr.order_no = o.order_no
+		WHERE
+		    ch.chart_no = #{chartNo}
+	</select>
+	
+	<insert id="insertRoundRecord" parameterType="roundRecordVO" statementType="CALLABLE">
+		DECLARE
+				v_success Number := 0;           
+			BEGIN
+				BEGIN
+					INSERT INTO round_record (
+					    round_no
+					    , round_date
+					    , round_writer
+					    , hsptlz_no
+					) VALUES (
+					    round_record_seq.nextval
+					    , sysdate
+					    , #{empName}
+					    , #{hsptlzNo}
+					);
+			
+					INSERT INTO round_prescription (
+					    round_pre_no,
+					    round_pre_date,
+					    round_no,
+					    mdcin_no
+					) VALUES (
+					    round_prescription_seq.nextval
+					    , sysdate
+					    , round_record_seq.currval
+					    , #{mdcinNo}
+					);
+			
+					INSERT INTO medication (
+					    medication_no,
+					    medication_description,
+					    medication_date,
+					    medication_writer,
+					    round_pre_no
+					) VALUES (
+					    medication_code_seq.nextval
+					    , #{medicationDescription}
+					    , sysdate
+					    , #{empName}
+					    , round_prescription_seq.currval
+					);
+			
+			    	v_success := 1;
+			    	
+			    	IF v_success = 1 THEN
+				   	 	COMMIT;
+					END IF;
+			EXCEPTION
+			    WHEN OTHERS THEN
+			        v_success := 0;
+			        ROLLBACK;
+			END;
+			
+			#{result, mode=OUT, jdbcType=INTEGER} := v_success;
+		END;
+	</insert>
+	
+	<select id="getRoundRecordList" parameterType="int" resultType="roundRecordVO">
+		select
+		    rr.round_no
+		    , hr.hsptlz_no
+		    , m.mem_name
+		    , rr.round_writer
+		    , rr.round_date
+		    , mdc.mdcin_name
+		    , med.medication_description
+		from hospitalization_record hr, round_record rr, round_prescription rp, medication med, "ORDER" o, 
+		chart ch, patient p, member m, medicine mdc
+		where hr.hsptlz_no = rr.hsptlz_no
+		and rr.round_no =  rp.round_no
+		and rp.round_pre_no = med.round_pre_no
+		and ch.patnt_no = p.patnt_no
+		and p.mem_no = m.mem_no
+		and hr.order_no = o.order_no
+		and o.chart_no = ch.chart_no
+		and rp.mdcin_no = mdc.mdcin_no
+		and rr.hsptlz_no = #{hsptlzNo}
+	</select>
+	
+	<select id="getNursingRecord" parameterType="int" resultType="nursingRecordVO">
+		SELECT
+		    nr.nursing_no
+		    , nr.nursing_writer
+		    , nr.nursing_date
+		    , nr.nursing_content
+		    , nr.hsptlz_no
+		    , nr.patnt_no
+		    , nr.receipt_no
+		    , io.io_intake
+		    , io.io_emissions
+		    , io.io_date
+		    , vit.pressure_max
+		    , vit.pressure_min
+		    , vit.vital_pulse
+		    , respiration_min
+		    , vit.vital_heat
+		FROM
+		    nursing_record nr, io io, vital vit, patient p, member m
+		where nr.hsptlz_no = io.hsptlz_no
+		and nr.hsptlz_no = vit.hsptlz_no
+		and nr.patnt_no = p.patnt_no
+		and p.mem_no = m.mem_no
+		and nr.hsptlz_no = #{hsptlzNo}
+	</select>
+
+</mapper>

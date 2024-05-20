@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.mapper.IOrderSetMapper">
+
+	<select id="getOrderSetList" parameterType="int" resultType="groupOrderVO">
+		SELECT
+		    group_order_no,
+		    group_order_name,
+		    emp_no
+		FROM
+		    group_order
+		where
+		    emp_no=#{empNo}
+	</select>
+	
+	<select id="getOrderSetDisease" parameterType="int" resultType="groupOrderDetailVO">
+	
+		SELECT
+		    g.GROUP_ORDER_DETAIL_CATEGORY,
+		    g.GROUP_ORDER_DETAIL_CONTENT,
+		    ds.dis_name_kr,
+		    ds.dis_no
+		FROM
+		    group_order_detail g,
+		    disease            ds
+		WHERE
+		    	group_order_detail_category IN ( 'GO001', 'GO002' )
+		    AND g.group_order_detail_content = ds.dis_no
+		    AND group_order_no = #{groupOrderNo}
+	
+	</select>
+	
+	<select id="getOrderSetMedicine" parameterType="int" resultType="groupOrderDetailVO">
+		SELECT
+		    g.group_order_detail_category,
+		    g.group_order_detail_content,
+		    m.mdcin_name,
+		    m.mdcin_no
+		FROM
+		    group_order_detail g,
+		    medicine           m
+		WHERE
+		        group_order_detail_category = 'GO003'
+		    AND g.group_order_detail_content = m.mdcin_no
+		    AND group_order_no = #{groupOrderNo}
+	
+	</select>
+	
+	<delete id="deleteOrderSet" parameterType="int">
+		DELETE FROM group_order
+		WHERE
+		    group_order_no = #{groupOrderNo}	
+	
+	</delete>
+	
+	<delete id="deleteOrderSetDetail" parameterType="int">
+		DELETE FROM group_order_detail
+		WHERE
+		    group_order_no = #{groupOrderNo}
+	</delete>
+	
+	<select id="getOrderSetName" parameterType="int" resultType="String">
+		SELECT
+		    group_order_name
+		FROM
+		    group_order
+		WHERE
+		    group_order_no=#{groupOrderNo}
+	
+	</select>
+	
+
+</mapper>

@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE configuration
+  PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+  "https://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+
+	<settings>
+		<setting name="mapUnderscoreToCamelCase" value="true"/>
+	</settings>
+	
+	<typeAliases>
+		<typeAlias type="kr.or.ddit.vo.MemberVO" alias="memberVO"/>
+		<typeAlias type="kr.or.ddit.vo.MemberAuth" alias="memberAuth"/>
+		<typeAlias type="kr.or.ddit.vo.EmpNoticeVO" alias="empNoticeVO"/>
+		<typeAlias type="kr.or.ddit.vo.PatientNoticeVO" alias="patntNoticeVO"/>
+		<typeAlias type="kr.or.ddit.vo.PaginationVO" alias="pagingVO"/>
+<!-- 		<typeAlias type="kr.or.ddit.vo.SurgeryReservationVO" alias="surgeryReservVO"/> -->
+		<typeAlias type="kr.or.ddit.vo.SurgeryReservationVO" alias="surgeryReservationVO"/>
+		<typeAlias type="kr.or.ddit.vo.CommentVO" alias="commentVO"/>
+		<typeAlias type="kr.or.ddit.vo.RadiationRoomVO" alias="radiationRoomVO"/>
+		<typeAlias type="kr.or.ddit.vo.HistoryVO" alias="historyVO"/>
+		<typeAlias type="kr.or.ddit.vo.PatientVO" alias="patientVO"/>
+		<typeAlias type="kr.or.ddit.vo.ReceiptVO" alias="receiptVO"/>
+		<typeAlias type="kr.or.ddit.vo.DiseaseVO" alias="diseaseVO"/>
+		<typeAlias type="kr.or.ddit.vo.EquipmentVO" alias="equipmentVO"/>
+		<typeAlias type="kr.or.ddit.vo.ChartVO" alias="chartVO"/>
+		<typeAlias type="kr.or.ddit.vo.OrderVO" alias="orderVO"/>
+		<typeAlias type="kr.or.ddit.vo.MedicineVO" alias="medicineVO"/>
+		<typeAlias type="kr.or.ddit.vo.AttachmentVO" alias="attachmentVO"/>
+		<typeAlias type="kr.or.ddit.vo.CommonCodeVO" alias="commonCodeVO"/>
+		<typeAlias type="kr.or.ddit.vo.CalendarVO" alias="calendarVO"/>
+		<typeAlias type="kr.or.ddit.vo.DiagnosisVO" alias="diagnosisVO"/>
+		<typeAlias type="kr.or.ddit.vo.PrescriptionVO" alias="prescriptionVO"/>
+		<typeAlias type="kr.or.ddit.vo.GroupOrderVO" alias="groupOrderVO"/>
+		<typeAlias type="kr.or.ddit.vo.GroupOrderDetailVO" alias="groupOrderDetailVO"/>
+		<typeAlias type="kr.or.ddit.vo.PatientNoticeVO" alias="pNoticeVO"/>
+		<typeAlias type="kr.or.ddit.vo.ClinicReservationVO" alias="clinicReservationVO"/>
+		<typeAlias type="kr.or.ddit.vo.BedVO" alias="bedVO"/>
+		<typeAlias type="kr.or.ddit.vo.WorkHistoryVO" alias="workHistoryVO"/>
+		<typeAlias type="kr.or.ddit.vo.WardVO" alias="wardVO"/>
+		<typeAlias type="kr.or.ddit.vo.SurgeryVO" alias="surgeryVO"/>
+		<typeAlias type="kr.or.ddit.vo.SurgeryKindVO" alias="surgeryKindVO"/>
+		<typeAlias type="kr.or.ddit.vo.CounselVO" alias="counselVO"/>
+		<typeAlias type="kr.or.ddit.vo.MedicineRequestVO" alias="medicineRequestVO"/>
+		<typeAlias type="kr.or.ddit.vo.MedicineRequestResultVO" alias="medicineRequestResultVO"/>
+		<typeAlias type="kr.or.ddit.vo.EvaluationVO" alias="EvaluationVO"/>
+		<typeAlias type="kr.or.ddit.vo.HospitalizationRecordVO" alias="hospitalizationRecordVO"/>
+		<typeAlias type="kr.or.ddit.vo.ReceiveVO" alias="receiveVO"/>
+		<typeAlias type="kr.or.ddit.vo.RocRecordVO" alias="rocRecordVO"/>
+		
+		<typeAlias type="kr.or.ddit.vo.ParticularVO" alias="particularVO"/>
+		<typeAlias type="kr.or.ddit.vo.ProtectorVO" alias="protectorVO"/>
+		<typeAlias type="kr.or.ddit.vo.RealmVO" alias="realmVO"/>
+		<typeAlias type="kr.or.ddit.vo.EmpVO" alias="empVO"/>
+		<typeAlias type="kr.or.ddit.vo.DoctorCareerVO" alias="careerVO"/>
+		<typeAlias type="kr.or.ddit.vo.RepairRequestVO" alias="repairRequestVO"/>												
+		<typeAlias type="kr.or.ddit.vo.RepairResultVO" alias="repairResultVO"/>												
+		<typeAlias type="kr.or.ddit.vo.VacationRequestVO" alias="vacationRequestVO"/>
+		<typeAlias type="kr.or.ddit.vo.VacationResultVO" alias="vacationResultVO"/>
+		<typeAlias type="kr.or.ddit.vo.CollaborationReqVO" alias="collaborationReqVO"/>
+		<typeAlias type="kr.or.ddit.vo.PreInspectionVO" alias="preInspectionVO"/>
+		<typeAlias type="kr.or.ddit.vo.DiagnosisPaperVO" alias="diagnosisPaperVO"/>
+		<typeAlias type="kr.or.ddit.vo.EmpListVO" alias="empListVO"/>
+		<typeAlias type="kr.or.ddit.vo.PreDiagnosisVO" alias="preDiagnosisVO"/>
+		<typeAlias type="kr.or.ddit.vo.RoundRecordVO" alias="roundRecordVO"/>
+		<typeAlias type="kr.or.ddit.vo.NursingRecordVO" alias="nursingRecordVO"/>
+		<typeAlias type="kr.or.ddit.vo.MeetingVO" alias="meetingVO"/>
+		<typeAlias type="kr.or.ddit.vo.MeetingPersonVO" alias="meetingPersonVO"/>
+		<typeAlias type="kr.or.ddit.vo.PtRecordVO" alias="ptRecordVO"/>
+		<typeAlias type="kr.or.ddit.vo.TreeViewVO" alias="treeViewVO"/>
+		<typeAlias type="kr.or.ddit.vo.DocumentStorageVO" alias="documentStorageVO"/>
+		<typeAlias type="kr.or.ddit.vo.MedicalEquipVO" alias="medicalEquipVO"/>
+		
+		<typeAlias type="kr.or.ddit.vo.NotificationVO" alias="notiVO"/>
+		<typeAlias type="kr.or.ddit.vo.ChatPersonVO" alias="chatPersonVO"/>
+		<typeAlias type="kr.or.ddit.vo.ChatRoomVO" alias="chatRoomVO"/>
+		<typeAlias type="kr.or.ddit.vo.ChatVO" alias="chatVO"/>
+		<typeAlias type="kr.or.ddit.vo.ChatUnreadVO" alias="chatUnreadVO"/>
+		<typeAlias type="kr.or.ddit.vo.ClinicVO" alias="clinicVO"/>
+		
+		
+	</typeAliases>
+	
+</configuration>  

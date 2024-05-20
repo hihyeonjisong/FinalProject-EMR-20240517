@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.mapper.AuthMapper">
+	<insert id="insertEmpAuth">
+		insert into AUTH
+			(
+				AUTH_NO, AUTH_NAME, MEM_NO
+			)
+			VALUES
+			(
+				auth_seq.nextval, 'ROLE_USER', #{memNo}
+			)
+	</insert>
+	
+	<update id="updateEmpPermission">
+		UPDATE
+			MEMBER
+		SET
+			MEM_PERMISSION = 'Y'
+		WHERE
+			MEM_NO = #{memNo}
+	</update>
+	
+	<insert id="insertAuth">
+			insert into AUTH
+			(
+				AUTH_NO, AUTH_NAME, MEM_NO
+			)
+			VALUES
+			(
+				auth_seq.nextval, #{authName}, #{memNo}
+			)
+	</insert>
+	<insert id="insertEmp">
+		INSERT INTO EMP
+			(
+				EMP_NO, EMP_JOB, EMP_HIRE_DATE, EMP_VACATION, MEM_NO
+			)
+			VALUES
+			(
+				emp_seq.nextval, #{empJob}, sysdate, 15, #{memNo}
+			)
+	</insert>
+	<update id="xPermit">
+		UPDATE
+			MEMBER
+		SET
+			MEM_PERMISSION = 'X'
+		WHERE
+			MEM_NO = #{memNo}
+			
+	</update>
+</mapper>

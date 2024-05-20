@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.mapper.IParticularMapper">
+	<select id="getParticularList" resultType="particularVO">
+		SELECT 
+			* 
+		FROM 
+			PATIENT_PARTICULAR 
+		WHERE 
+			PATNT_NO = #{patntNo}
+		ORDER BY 
+			PARTICULAR_DATE ASC
+	</select>
+	
+	<insert id="insertParticular" useGeneratedKeys="true">
+		<selectKey keyProperty="particularNo" order="BEFORE" resultType="int">
+			SELECT PATIENT_PARTICULAR_SEQ.NEXTVAL FROM DUAL
+		</selectKey>
+			INSERT INTO PATIENT_PARTICULAR
+				(
+				PARTICULAR_NO, PARTICULAR_DESCRIPTION, PARTICULAR_DATE, PARTICULAR_WRITER, PATNT_NO, PARTICULAR_CHECK, MEM_NO
+				)
+				VALUES
+				(
+				#{particularNo}, #{particularDescription}, SYSDATE, #{particularWriter}, #{patntNo}, 0, #{memNo}
+				)
+	</insert>
+	
+	<update id="checkParticular">
+		UPDATE
+			PATIENT_PARTICULAR
+		SET
+			PARTICULAR_CHECK = PARTICULAR_CHECK +1
+		WHERE
+			PARTICULAR_NO = #{particularNo} 
+	</update>
+</mapper>

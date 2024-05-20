@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.mapper.ICalendarMapper">
+
+	<insert id="insertEvent" parameterType="calendarVO">
+		<selectKey keyProperty="calendarKey" resultType="int" order="BEFORE">
+			select calendar_SEQ.nextval from dual
+		</selectKey>
+	
+		INSERT INTO calendar (
+		    calendar_key
+		    ,calendar_title
+		    ,calendar_content
+		    ,calendar_startdate
+		    ,calendar_enddate
+		    ,calendar_allday
+		    ,calendar_color
+		    ,calendar_cate
+		    ,emp_no
+		<if test="patntNo != null">
+            ,patnt_no
+        </if>
+		) VALUES (
+		    #{calendarKey}
+		    ,#{calendarTitle}
+		    ,#{calendarContent}
+		    ,TO_DATE(#{calendarStartDate}, 'YYYY-MM-DD HH24:MI')
+		    ,TO_DATE(#{calendarEndDate}, 'YYYY-MM-DD HH24:MI')
+		    ,#{calendarAllDay}
+		    ,#{calendarColor}
+		    ,#{calendarCate}
+		    ,#{empNo}
+		<if test="patntNo != null">
+            ,#{patntNo}
+        </if>
+		)
+		
+	</insert>
+	
+	<select id="getCalendar" resultType="calendarVO" parameterType="int">
+		SELECT
+		    calendar_key 
+		   	,calendar_title as title
+		    ,calendar_content 
+		    ,calendar_startdate as "START"
+		    ,calendar_enddate as "END"
+		    ,calendar_allday as allDay
+		    ,calendar_color as backgroundColor
+		    ,calendar_cate
+		    ,emp_no
+		    ,patnt_no
+		FROM
+		    calendar
+		WHERE
+			CALENDAR_CATE='CD001'
+			and emp_no=#{empNo}
+	</select>
+	
+	<delete id="deleteEvent" parameterType="int">
+		DELETE FROM calendar
+    	WHERE
+        calendar_key = #{calendarKey}
+	
+	</delete>
+	
+	<update id="updateEvent" parameterType="calendarVO">
+		UPDATE calendar
+		SET
+		    calendar_title=#{calendarTitle}
+		    ,calendar_content=#{calendarContent}
+		    ,calendar_startdate= TO_DATE(#{calendarStartDate}, 'YYYY-MM-DD HH24:MI')
+		    ,calendar_enddate= TO_DATE(#{calendarEndDate}, 'YYYY-MM-DD HH24:MI')
+		    ,calendar_allday=#{calendarAllDay}
+		    ,calendar_color=#{calendarColor}   
+	
+		WHERE
+        calendar_key = #{calendarKey}
+	</update>
+	
+	<select id="getCalendarVacation" resultType="calendarVO" parameterType="int">
+		SELECT
+		    calendar_key 
+		   	,calendar_title as title
+		    ,calendar_content 
+		    ,calendar_startdate as "START"
+		    ,calendar_enddate as "END"
+		    ,calendar_allday as allDay
+		    ,calendar_color as backgroundColor
+		    ,calendar_cate
+		    ,emp_no
+		    ,patnt_no
+		FROM
+		    calendar
+		WHERE
+			CALENDAR_CATE ='CD005'
+			and emp_no=#{empNo}
+	
+	</select>
+	
+	<select id="getCalendarReservation" resultType="calendarVO" parameterType="int">
+	
+		SELECT
+		    c.calendar_key 
+		   	,c.calendar_title as title
+		    ,c.calendar_content 
+		    ,c.calendar_startdate as "START"
+		    ,c.calendar_enddate as "END"
+		    ,c.calendar_allday as allDay
+		    ,c.calendar_color as backgroundColor
+		    ,c.calendar_cate
+		    ,c.emp_no
+		    ,m.mem_name
+		FROM
+		    calendar c, member m, patient p
+		WHERE
+			CALENDAR_CATE ='CD002'
+            and c.patnt_no=p.patnt_no
+            and m.mem_no=p.mem_no
+			and emp_no=#{empNo}
+	</select>
+	
+	<select id="getEmpVacationList" resultType="calendarVO">
+		SELECT 
+		      CALENDAR_TITLE AS title
+		    , CALENDAR_STARTDATE AS "start"
+		    , CALENDAR_ENDDATE as "end"
+		    , CALENDAR_COLOR as backgroundColor
+		FROM   
+		    CALENDAR
+		WHERE
+		    CALENDAR_TITLE = '연가'
+		AND
+		    EMP_NO = #{empNo}
+	</select>
+	
+	<select id="getCalendarSurgeryList" resultType="calendarVO">
+		SELECT
+		    calendar_key
+		   	,calendar_title as title
+		    ,calendar_content
+		    ,calendar_startdate as "START"
+		    ,calendar_enddate as "END"
+		    ,calendar_allday as allDay
+		    ,calendar_color as backgroundColor
+		    ,calendar_cate
+		    ,emp_no
+		    ,patnt_no
+		FROM
+		    calendar
+		WHERE
+			CALENDAR_CATE ='CD003'
+			and emp_no=#{empNo}
+	
+	</select>
+
+</mapper>

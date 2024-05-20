@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE tiles-definitions PUBLIC "-//Apache Software Foundation//DTD Tiles Configuration 3.0//EN" "http://tiles.apache.org/dtds/tiles-config_3_0.dtd">
+<tiles-definitions>
+	<definition name="mainTemplate" template="/WEB-INF/views/tiles/mainTemplate.jsp">
+		<put-attribute name="header" value="/WEB-INF/views/tiles/header.jsp"></put-attribute>
+		<put-attribute name="footer" value="/WEB-INF/views/tiles/footer.jsp"></put-attribute>
+		<put-attribute name="sidebar" value="/WEB-INF/views/tiles/sidebar.jsp"></put-attribute>
+	</definition>
+	
+	<definition name="main/*" extends="mainTemplate">
+		<put-attribute name="content" value="/WEB-INF/views/{1}.jsp"/>
+	</definition>
+	
+	<definition name="admin/*" extends="mainTemplate">
+		<put-attribute name="content" value="/WEB-INF/views/admin/{1}.jsp"/>
+	</definition>
+	
+	
+	<definition name="radiation/*" extends="mainTemplate">
+		<put-attribute name="content" value="/WEB-INF/views/radiation/{1}.jsp"/>
+	</definition>
+	
+	<definition name="doctor/*" extends="mainTemplate">
+		<put-attribute name="content" value="/WEB-INF/views/doctor/{1}.jsp"/>
+	</definition>
+	
+	<definition name="nurse/*" extends="mainTemplate">
+		<put-attribute name="content" value="/WEB-INF/views/nurse/{1}.jsp"/>
+	</definition>
+
+	
+	<definition name="empNotice/*" extends="mainTemplate">
+		<put-attribute name="content" value="/WEB-INF/views/empNotice/{1}.jsp"/>
+	</definition>
+
+	<definition name="empSurgery/*" extends="mainTemplate">
+		<put-attribute name="content" value="/WEB-INF/views/empSurgery/{1}.jsp"/>
+	</definition>
+
+	<definition name="empPhysical/*" extends="mainTemplate">
+		<put-attribute name="content" value="/WEB-INF/views/empPhysical/{1}.jsp"/>
+	</definition>
+	
+	<definition name="equipment/*" extends="mainTemplate">
+		<put-attribute name="content" value="/WEB-INF/views/equipment/{1}.jsp"/>
+	</definition>
+	
+	<definition name="statistics/*" extends="mainTemplate">
+		<put-attribute name="content" value="/WEB-INF/views/statistics/{1}.jsp"/>
+	</definition>
+	
+	
+	<definition name="main/*/*" extends="mainTemplate">
+		<put-attribute name="content" value="/WEB-INF/views/{1}/{2}.jsp"/>
+	</definition>
+
+</tiles-definitions>

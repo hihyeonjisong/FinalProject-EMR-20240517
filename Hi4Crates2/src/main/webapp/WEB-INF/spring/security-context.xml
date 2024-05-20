@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:security="http://www.springframework.org/schema/security"
+	xsi:schemaLocation="http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+	<bean id="customAccessDenied" class="kr.or.ddit.security.CustomAccessDeniedHandler"/>
+	
+	<bean id="customLoginSuccess" class="kr.or.ddit.security.CustomLoginSuccessHandler"/>
+	
+	<!-- 암호화를 사용하지 않을 시 -->	
+<!-- 	<bean id="customPasswordEncoder" class="kr.or.ddit.security.CustomNoOpPasswordEncoder"/> -->
+
+	<bean id="customUserDetailsService" class="kr.or.ddit.security.CustomUserDetailService"/>
+	<!-- 암호화를 사용 시 -->
+	<bean id="bcryptPasswordEncoder" class="org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder"></bean>
+	
+	    <!-- 웹소켓 시큐리티 설정 -->
+<!--     <security:http auto-config="true"> -->
+<!--         웹소켓 엔드포인트에 대한 접근 허용 -->
+<!--         <security:intercept-url pattern="/echo/**" access="permitAll" /> -->
+<!--         다른 요청에 대해서는 인증을 요구 -->
+<!--         <security:intercept-url pattern="/**" access="permitAll" /> -->
+<!--         CSRF 보호 비활성화 -->
+<!--         <security:csrf disabled="true" /> -->
+<!--     </security:http> -->
+	
+	
+	
+	<security:http pattern="/public/**" security="none" />
+<!-- 	<security:http pattern="/emp/**" security="none" /> -->
+<!-- 	<security:http pattern="/radiation/**" security="none" /> -->
+<!-- 	<security:http pattern="/public/*/*" security="none" /> -->
+	<security:http pattern="/patient/**" security="none" />
+	<security:http pattern="/star/**" security="none" />
+	<security:http pattern="/file/*" security="none"/>
+	<security:http pattern="/pMypage/*" security="none"/>
+	<security:http pattern="/pAccount/*" security="none"/>
+		<security:http pattern="/echo/*" security="none"/>
+		<security:http pattern="/book/*" security="none"/>
+	<security:http pattern="/statistics/*" security="none"/>
+	<security:http>
+		<security:form-login login-page="/login" authentication-success-handler-ref="customLoginSuccess"
+			password-parameter="memPw" username-parameter="memId"/>
+		<security:access-denied-handler ref="customAccessDenied"/>
+		<security:logout logout-url="/logout" invalidate-session="true"/>
+ 		<security:intercept-url pattern="/comm/**" access="hasAnyRole('ROLE_ADMIN','ROLE_DOCTOR','ROLE_SUPER')" />
+ 		<security:intercept-url pattern="/comm/*/*" access="hasAnyRole('ROLE_ADMIN','ROLE_DOCTOR','ROLE_SUPER')" />
+ 		<security:intercept-url pattern="/admin/**" access="hasAnyRole('ROLE_ADMIN','ROLE_DOCTOR','ROLE_SUPER')" />
+ 		<security:intercept-url pattern="/emp/physical/*" access="hasAnyRole('ROLE_ADMIN','ROLE_DOCTOR','ROLE_SUPER')" />
+ 		<security:intercept-url pattern="/emp/**" access="hasAnyRole('ROLE_ADMIN','ROLE_DOCTOR','ROLE_SUPER')" />
+ 		<security:intercept-url pattern="/nurse/**" access="hasAnyRole('ROLE_ADMIN','ROLE_SUPER')" />
+ 		<security:intercept-url pattern="/radiation/**" access="hasAnyRole('ROLE_ADMIN','ROLE_SUPER')" />
+ 		<security:intercept-url pattern="/mypage/*" access="hasAnyRole('ROLE_ADMIN','ROLE_SUPER','ROLE_DOCTOR')" />
+ 		<security:intercept-url pattern="/equipment/*" access="hasAnyRole('ROLE_SUPER')"/>
+ 		<security:intercept-url pattern="/doctor/**" access="hasAnyRole('ROLE_SUPER','ROLE_DOCTOR')" />
+ 		<security:intercept-url pattern="/doctor/*/*" access="hasAnyRole('ROLE_SUPER','ROLE_DOCTOR')" />
+	</security:http>
+	
+	<security:authentication-manager>
+		<security:authentication-provider user-service-ref="customUserDetailsService">
+			<security:password-encoder ref="bcryptPasswordEncoder"/>
+		</security:authentication-provider>
+	</security:authentication-manager>
+
+
+</beans>

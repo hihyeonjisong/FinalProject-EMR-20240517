@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.mapper.ISurgeryRecordMapper">
+
+	<select id="getSurgeryList" resultType="surgeryReservationVO">
+		SELECT
+		      SR.SURGERY_RESERVATION_NO
+		    , SR.SURGERY_RESERVATION_DATE
+		    , SR.SURGERY_RESERVATION_TIME
+		    , SR.SURGERY_ROOM_NO
+		    , SR.ORDER_NO
+		    , SR.PATNT_NO
+		    , SR.SURGERY_DOCTOR
+		    , SR.SURGERY_KIND_CODE
+		    , S.SURGERY_KIND_NAME
+		    , SR.SURGERY_RESERVATION_STATUS
+		    , PM.MEM_NAME AS patntName
+		    , DM.MEM_NAME AS empName
+            , E.EMP_LICENCE AS empLicence
+            , PM.MEM_AGE AS memAge
+            , PM.MEM_GENDER AS memGender
+		    , S.SURGERY_NO
+		    ,(SELECT MAX(S.SURGERY_NO) FROM SURGERY S) AS maxSurgeryNo
+		FROM
+		    SURGERY_RESERVATION SR
+		INNER JOIN
+		    PATIENT P ON P.PATNT_NO = SR.PATNT_NO
+		INNER JOIN
+		    MEMBER PM ON PM.MEM_NO = P.MEM_NO
+		INNER JOIN
+		    EMP E ON E.EMP_NO = SR.SURGERY_DOCTOR
+		INNER JOIN
+		    MEMBER DM ON DM.MEM_NO = E.MEM_NO
+		INNER JOIN
+		    SURGERY_KIND S ON S.SURGERY_KIND_CODE = SR.SURGERY_KIND_CODE
+		LEFT JOIN
+		    SURGERY S ON S.ORDER_NO= SR.ORDER_NO
+		WHERE 
+		    SR.SURGERY_RESERVATION_STATUS ='Y'
+		ORDER BY
+		    SURGERY_RESERVATION_DATE DESC
+	</select>
+
+	<insert id="insertSurgery" parameterType="surgeryVO">
+		INSERT INTO SURGERY
+			(
+				SURGERY_NO
+				, SURGERY_DOCTOR
+				, SURGERY_DATE
+				, SURGERY_ELAPSE
+				, SURGERY_COMMENT
+				, SURGERY_KIND_CODE
+				, ORDER_NO
+<!-- 				, INSPCT_NO -->
+				, PATNT_NO
+				, SURGERY_REC_DATE
+			)
+			VALUES
+			(
+				SURGERY_SEQ.NEXTVAL
+				, #{surgeryDoctor}
+				, #{surgeryDate}
+				, #{surgeryElapse}
+				, #{surgeryComment}
+				, #{surgeryKindCode}
+				, #{orderNo}
+				, #{patntNo}
+				, SYSDATE
+			)
+	</insert>
+	
+	<select id="detailSurgery" parameterType="int" resultType="surgeryReservationVO">
+		SELECT
+		      SR.SURGERY_RESERVATION_NO
+		    , SR.SURGERY_RESERVATION_DATE
+		    , SR.SURGERY_RESERVATION_TIME
+		    , SR.SURGERY_ROOM_NO
+		    , SR.ORDER_NO
+		    , SR.PATNT_NO
+		    , SR.SURGERY_DOCTOR
+		    , SR.SURGERY_KIND_CODE
+		    , SR.SURGERY_RESERVATION_STATUS
+		    , PM.MEM_NAME AS patntName
+		    , DM.MEM_NAME AS empName
+            , E.EMP_LICENCE AS empLicence
+            , PM.MEM_AGE AS memAge
+            , PM.MEM_GENDER AS memGender
+            , S.SURGERY_KIND_NAME
+		    , S.SURGERY_NO
+		    , S.SURGERY_REC_DATE
+		    , S.SURGERY_DATE
+            , S.SURGERY_COMMENT
+            , S.SURGERY_ELAPSE
+		FROM
+		    SURGERY_RESERVATION SR
+		INNER JOIN
+		    PATIENT P ON P.PATNT_NO = SR.PATNT_NO
+		INNER JOIN
+		    MEMBER PM ON PM.MEM_NO = P.MEM_NO
+		INNER JOIN
+		    EMP E ON E.EMP_NO = SR.SURGERY_DOCTOR
+		INNER JOIN
+		    MEMBER DM ON DM.MEM_NO = E.MEM_NO
+		INNER JOIN
+		    SURGERY_KIND S ON S.SURGERY_KIND_CODE = SR.SURGERY_KIND_CODE
+		LEFT JOIN
+		    SURGERY S ON S.ORDER_NO= SR.ORDER_NO
+		WHERE 
+		    SR.SURGERY_RESERVATION_STATUS ='Y'
+            AND S.SURGERY_NO=#{surgeryNo}
+	
+	</select>
+</mapper>

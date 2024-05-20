@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.mapper.IEvaluationMapper">
+	
+	<update id="plusStar" parameterType="EvaluationVO">
+		UPDATE EVALUATION E
+		SET E.EVL_CONTENT = #{evlContent},
+		    E.EVL_SCORE = #{evlScore},
+		    E.EVL_DATE = SYSDATE
+		WHERE E.RECEIPT_NO IN (SELECT R.RECEIPT_NO FROM RECEIPT R WHERE R.receipt_no = #{receiptNo})
+	</update>
+	
+</mapper>

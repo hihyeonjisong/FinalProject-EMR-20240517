@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.mapper.IMypageMapper">
+	<resultMap type="memberVO" id="EmpDetailResultMap">
+		<id column="mem_no" property="memNo" />
+		<result property="memNo" column="MEM_NO" />
+		<result property="memId" column="MEM_ID" />
+		<result property="memPw" column="MEM_PW" />
+		<result property="memEmail" column="MEM_EMAIL" />
+		<result property="memName" column="MEM_NAME" />
+		<result property="memAge" column="MEM_AGE" />
+		<result property="memGender" column="MEM_GENDER" />
+		<result property="memRegno1" column="MEM_REGNO1" />
+		<result property="memRegno2" column="MEM_REGNO2" />
+		<result property="memTel" column="MEM_TEL" />
+		<result property="memAddtel" column="MEM_ADDTEL" />
+		<result property="memPostcode" column="mem_postcode" />
+		<result property="memAddress1" column="MEM_ADDRESS1" />
+		<result property="memAddress2" column="MEM_ADDRESS2" />
+		<result property="memSignupDate" column="MEM_SIGNUP_DATE" />
+		<result property="memType" column="MEM_TYPE" />
+		<result property="memSocial" column="MEM_SOCIAL" />
+		<result property="memPermission" column="MEM_PERMISSION" />
+		<result property="memWithdraw" column="MEM_WITHDRAW" />
+		<result property="memWithdrawReason" column="MEM_WITHDRAW_REASON" />
+		<result property="memWithdrawDate" column="MEM_WITHDRAW_DATE" />
+		<result property="attachmentGroupNo" column="ATTACHMENT_GROUP_NO" />
+		<association javaType="empVO" property="empVO">
+			<id column="emp_no" property="empNo" />
+			<result column="EMP_NO" property="empNo" />
+			<result column="EMP_JOB" property="empJob" />
+			<result column="EMP_HIRE_DATE" property="empHireDate" />
+			<result column="EMP_LICENCE" property="empLicence" />
+			<result column="EMP_VACATION" property="empVacation" />
+		</association>
+		<collection property="realmList" resultMap="realmMap" />
+	</resultMap>
+	<resultMap type="realmVO" id="realmMap">
+		<id column="realm_no" property="realmNo" />
+		<result column="realm_no" property="realmNo" />
+		<result column="realm_name" property="realmName" />
+	</resultMap>
+	<!-- <resultMap type="empVO" id="empMap"> -->
+	<!-- <id column="emp_no" property="empNo"/> -->
+	<!-- <result column="EMP_NO" property="empNo"/> -->
+	<!-- <result column="EMP_JOB" property="empJob"/> -->
+	<!-- <result column="EMP_HIRE_DATE" property="empHireDate"/> -->
+	<!-- <result column="EMP_LEAVE_DATE" property="empLeaveDate"/> -->
+	<!-- <result column="EMP_LEAVE" property="empLeave"/> -->
+	<!-- <result column="EMP_LICENCE" property="empLicence"/> -->
+	<!-- <result column="EMP_VACATION" property="empVacation"/> -->
+	<!-- <result column="MEM_NO" property="memNo"/> -->
+	<!-- <result column="EMP_STATUS" property="empStatus"/> -->
+	<!-- <result column="ATTACHMENT_GROUP_NO" property="attachmentGroupNo"/> -->
+	<!-- </resultMap> -->
+	<select id="getMyInfo" resultMap="EmpDetailResultMap">
+		SELECT
+		m.mem_no
+		,mem_id
+		, mem_pw
+		, mem_email
+		, mem_name
+		, mem_age
+		, mem_tel
+		, mem_gender
+		, mem_regno1
+		, mem_regno2
+		, mem_postcode
+		, mem_address1
+		, attachment_Group_No
+		, mem_address2
+		, e.emp_no
+		, e.emp_job
+		, emp_licence
+		, emp_hire_date
+		, emp_vacation
+		, realm_name
+		FROM
+		member m
+		INNER JOIN
+		emp e ON m.mem_no = e.mem_no
+		LEFT OUTER JOIN
+		doctor_realm r ON e.emp_no = r.emp_no
+		WHERE e.mem_no = #{memNo}
+	</select>
+
+	<!-- <select id="getMyInfo" resultMap="EmpDetailResultMap"> -->
+	<!-- select -->
+	<!-- mem_id, mem_pw, mem_email, mem_name, mem_age, mem_gender, mem_regno1, 
+		mem_regno2, mem_address1, mem_address2, -->
+	<!-- e.emp_no, emp_job, emp_licence, emp_hire_date, emp_vacation -->
+	<!-- from member m, emp e -->
+	<!-- where m.mem_no = e.mem_no -->
+	<!-- and e.mem_no = #{memNo} -->
+	<!-- </select> -->
+	<!-- <select id="getMyRealm" resultType="realmVO"> -->
+	<!-- select realm_name from doctor_realm where emp_no = (select emp_no from 
+		emp where mem_no = #{memNo}) -->
+	<!-- </select> -->
+
+	<select id="getMyCareer" resultType="careerVO"> 
+		select 
+			career_name 
+		from
+			doctor_career 
+		where 
+			emp_no = (select emp_no from emp where mem_no =#{memNo}) 
+	</select>
+	
+	<update id="modifyProfile">
+		update member
+		set 
+			mem_id = #{memId},
+			mem_name = #{memName},
+			mem_tel = #{memTel},
+			mem_email = #{memEmail},
+			mem_postcode = #{memPostcode},
+			mem_address1 = #{memAddress1},
+			mem_address2 = #{memAddress2}
+			<if test="attachmentGroupNo != null and attachmentGroupNo != '' ">
+    		,attachment_Group_No = #{attachmentGroupNo}
+  			</if>
+		where mem_no = #{memNo}
+	</update>
+	
+	<update id="passwordModify">
+		update member
+		set
+			mem_pw = #{memPw}
+		where 
+			mem_no = #{memNo}
+	</update>
+	
+	<select id="getWorkHistory" resultType="workHistoryVO">
+		SELECT 
+			* 
+		FROM 
+			work_history w,  emp e
+		WHERE 
+    		work_history_date 
+    		BETWEEN TRUNC(sysdate) AND TRUNC(sysdate) + INTERVAL '1' DAY - INTERVAL '1' SECOND
+    		AND work_end_time is null
+    		AND w.emp_no = e.emp_no
+    		and e.mem_no=#{memNo}
+	</select>
+</mapper>

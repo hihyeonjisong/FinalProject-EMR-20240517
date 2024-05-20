@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- 마이바티스 홈페이지에서 Exploring Mapped SQL Statements 의 dtd  -->
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  
+<mapper namespace="kr.or.ddit.mapper.IAdminReservMapper">
+	<select id="getData" parameterType="int" resultType="clinicReservationVO" >
+		select
+			 reserv_no, reserv_date, reserv_time, reserv_memo, emp_no, mem_no
+		FROM clinic_reservation
+		where emp_no = #{empNo}
+		
+	</select>
+	
+	
+	<!-- <select id="getVacation" parameterType="int" resultType="vacationRequestVO">
+		SELECT
+	    q.vacation_request_no, vacation_start_date, vacation_end_date, q.emp_no
+		FROM vacation_request q, vacation_result s , emp e
+		where q.vacation_request_no = s.vacation_request_no
+		and vacation_request_status='Y'
+		and vacation_result_agree = 'Y'
+		and q.emp_no = e.emp_no
+		and q.emp_no = #{empNo}
+	</select> -->
+	
+	<select id="getVacation" parameterType="int" resultType="calendarVO">
+		SELECT
+			    calendar_key 
+			   	,calendar_title as title
+			    ,calendar_content 
+			    ,calendar_startdate as "START"
+			    ,calendar_enddate as "END"
+			    ,calendar_allday as allDay
+			    ,calendar_color as backgroundColor
+			    ,calendar_cate
+			    ,emp_no
+			    ,patnt_no
+			FROM
+			    calendar
+			WHERE
+				CALENDAR_CATE ='CD005'
+				and emp_no=#{empNo}
+	</select>
+	
+	<insert id="insertEvent" parameterType="clinicReservationVO" useGeneratedKeys="true">
+		<!-- keyProperty에 설정된 프로퍼티에 자동 생성된 키가 할당됨 -->
+	    <selectKey keyProperty="reservNo" resultType="clinicReservationVO" order="BEFORE">
+	        SELECT CLINIC_RESERVATION_SEQ.nextval as reserv_no FROM dual
+	        <!-- 새로 삽입된 레코드의 키 값을 가져옴 -->
+	    </selectKey>
+	    <!-- useGeneratedKeys 속성을 true로 설정하여 자동 생성된 키를 가져옴 -->
+	    <!-- keyProperty는 자동 생성된 키가 설정될 객체의 프로퍼티를 나타냄 -->
+		insert into clinic_reservation(
+			reserv_no, reserv_date, reserv_time, reserv_memo, emp_no, mem_no, calendar_key
+		) values (
+			#{reservNo},#{reservDate},#{reservTime},#{reservMemo},#{empNo},#{memNo},#{calendarKey}
+		)
+	</insert>
+	
+	<update id="updateEvent" parameterType="clinicReservationVO">
+		update calendar
+		set
+			calendar_title = #{calendarTitle},
+			calendar_startdate = #{calendarStartDate},
+			calendar_enddate = #{calendarEndDate},
+			calendar_allday = #{calendarAllDay}
+		where calendar_key = #{calendarKey}
+	</update>
+	
+	<delete id="deleteEvent" parameterType="string">
+		delete from calendar
+		where calendar_key = #{calendarKey}
+	</delete>
+	
+	<select id="showdoctorList" resultType="memberVO">
+		 select m.mem_no
+		 , m.mem_name
+		 , e.emp_no
+		from member m , emp e
+		where m.mem_type = 'MT001'
+			and m.mem_no = e.mem_no
+			and m.emp_job = '의사'
+	</select>
+	
+	<select id="showReserveList" parameterType="clinicReservationVO" resultType="clinicReservationVO">
+		SELECT
+		 reserv_no
+		 , reserv_date
+		 , reserv_time
+		 , reserv_memo
+		 , e.emp_no
+		 , m.mem_name as empName
+		 , c.mem_no
+		 , pm.mem_name
+		 , calendar_key
+		FROM clinic_reservation c, emp e, patient p, member m, member pm
+	    where reserv_date = #{reservDate}
+		    and c.emp_no = #{empNo}
+		    and c.emp_no = e.emp_no
+	        and e.mem_no = m.mem_no -- 얘가 사원 조인
+	        and c.mem_no = p.mem_no
+	        and p.mem_no = pm.mem_no -- 얘는 환자 조인
+	        ORDER BY reserv_time asc
+	</select>
+	
+	<update id="updateClinicReservation" parameterType="clinicReservationVO" >
+		update clinic_reservation
+   		 	set reserv_date = #{reservDate},
+        	reserv_time = #{reservTime},
+        	reserv_memo = #{reservMemo},
+       		emp_no = #{empNo}
+    	where reserv_no = #{reservNo}
+	</update>
+	
+	
+	<delete id="deleteClinicReservation">
+		DELETE FROM clinic_reservation
+			WHERE
+		    reserv_no =#{reservNo}
+	</delete>
+	
+	<insert id="insertCalendar" parameterType="clinicReservationVO" useGeneratedKeys="true" >
+	
+		<selectKey keyProperty="calendarKey" resultType="clinicReservationVO" order="BEFORE">
+			select CALENDAR_SEQ.NEXTVAL as calendar_key from dual
+		</selectKey>
+	
+		INSERT INTO calendar (
+		    calendar_key, calendar_title, calendar_content, calendar_startdate, calendar_enddate, calendar_allday,
+		    calendar_color,calendar_cate, emp_no, patnt_no
+		) VALUES (
+		    #{calendarKey}, '진료예약',#{reservMemo}, to_date(#{calStartdate}, 'YYYY-MM-DD HH24:MI'),'','',
+		    'skyblue','CD002',#{empNo},(select patnt_no from patient where mem_no=#{memNo})
+	    
+		)
+	</insert>
+	
+	<update id="updateCalendar" parameterType="clinicReservationVO">
+		UPDATE calendar
+	    SET 
+	     calendar_content = #{reservMemo},
+	     calendar_startdate = to_date(#{calStartdate}, 'YYYY-MM-DD HH24:MI') ,
+	     emp_no = #{empNo}
+	    where
+	     calendar_key = #{calendarKey}
+	</update>
+	
+	
+	<delete id="deleteCalendar">
+		delete from calendar 
+		where calendar_key = #{calendarKey}
+	</delete>
+	
+</mapper>

@@ -1,0 +1,413 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.mapper.IMainAdminMapper">
+	
+	
+	<!-- <insert id="enrollMember" parameterType="memberVO" >
+		insert into member(
+		mem_no, mem_id, mem_pw, mem_name, mem_age, mem_gender,mem_regno1, mem_regno2,
+		mem_tel,mem_address1, mem_address2, mem_signup_date,mem_type,mem_social
+		)
+		values(
+		member_seq.nextval, #{memRegno},#{memRegno1},#{memName},#{memAge},#{memGender},#{memRegno1},#{memRegno2},
+		#{memTel},#{memAddress1},#{memAddress2},SYSDATE,'MT002','N'
+		)
+		
+	</insert> -->
+	
+	<insert id="enrollMember" parameterType="memberVO" useGeneratedKeys="true" >
+	    <!-- keyProperty에 설정된 프로퍼티에 자동 생성된 키가 할당됨 -->
+	    <selectKey keyProperty="memNo" resultType="memberVO" order="BEFORE">
+	        SELECT member_seq.nextval as mem_no FROM dual
+	        <!-- 새로 삽입된 레코드의 키 값을 가져옴 -->
+	    </selectKey>
+	    <!-- useGeneratedKeys 속성을 true로 설정하여 자동 생성된 키를 가져옴 -->
+	    <!-- keyProperty는 자동 생성된 키가 설정될 객체의 프로퍼티를 나타냄 -->
+	    insert into member(
+			mem_no, mem_id, mem_pw, mem_name, mem_age, mem_gender,mem_regno1, mem_regno2,
+			mem_tel,mem_postcode,mem_address1, mem_address2, mem_signup_date,mem_type,mem_social
+		)
+		values(
+			#{memNo}, #{memRegno},#{memPw},#{memName},#{memAge},#{memGender},#{memRegno1},#{memRegno2},
+			#{memTel},#{memPostcode},#{memAddress1},#{memAddress2},SYSDATE,'MT002','N'
+		)
+		
+	</insert>
+	
+	
+	<insert id="enrollPatient" parameterType="memberVO" useGeneratedKeys="true" >
+		<selectKey keyProperty="patntNo" resultType="memberVO" order="BEFORE">
+			select patient_seq.nextval as patnt_no from dual
+		</selectKey>
+		
+		insert into patient(
+			patnt_no, mem_no
+		)
+		values(
+			#{patntNo},#{memNo}
+		)
+	
+	</insert>
+	
+	
+	
+	 <select id="findReceiptDoctor" resultType="memberVO">
+		 SELECT mem_name, m.mem_no, e.emp_no, clinic_no, code_name
+			FROM member m, emp e, clinic c, common_code
+			WHERE m.mem_no = e.mem_no
+			AND e.emp_no = c.emp_no
+			AND code_no = clinic_no
+			AND (clinic_status IN ('CS001', 'CS002') OR clinic_status IS NULL)
+        
+	</select>
+	
+	<!-- <select id="findReceiptDoctor" resultType="memberVO">
+	SELECT mem_name, m.mem_no, e.emp_no, clinic_no, code_name
+			FROM member m, emp e, clinic c, common_code
+			WHERE m.mem_no = e.mem_no
+			AND e.emp_no = c.emp_no
+			AND code_no = clinic_no
+			AND (clinic_status IN ('CS001', 'CS002') OR clinic_status IS NULL)
+            and m.emp_job='의사'
+            and e.emp_job != '병원장'
+    </select> -->
+	
+	<insert id="insertReceipt" parameterType="receiptVO" useGeneratedKeys="true" >
+	     <selectKey keyProperty="receiptNo" resultType="receiptVO" order="BEFORE">
+	            SELECT receipt_seq.nextval as receipt_no FROM dual
+	            <!-- 새로 삽입된 레코드의 키 값을 가져옴 -->
+	      </selectKey>
+	    insert into receipt(
+	        receipt_no, receipt_date, receipt_reason, receipt_status, 
+	        patnt_no, clinic_no, emp_no
+	    )values(
+	        #{receiptNo}, SYSDATE, #{receiptReason}, 'RS001', 
+	        #{patntNo}, #{clinicNo},#{empNo}
+	    )
+	</insert>
+	
+	<insert id="insertPreDiagnosis" parameterType="receiptVO">
+		insert into pre_diagnosis(
+	    PRE_DIAGNOSIS_NO, PRE_DIAGNOSIS_EXP, PRE_DIAGNOSIS_DISEASE, PRE_DIAGNOSIS_ALLERGY,
+	    PRE_DIAGNOSIS_PREGNANCY, PRE_DIAGNOSIS_CHOICE, PRE_DIAGNOSIS_DATE, PATNT_NO, RECEIPT_NO
+		)VALUES(
+		    PRE_DIAGNOSIS_SEQ.NEXTVAL , #{preDiagnosisExp},#{preDiagnosisDisease},#{preDiagnosisAllergy},
+		    #{preDiagnosisPregnancy},#{preDiagnosisChoice},SYSDATE,#{patntNo},#{receiptNo}
+		)
+	</insert>
+	
+	<insert id="insertHistory" parameterType="receiptVO">
+	    INSERT INTO history (
+	    	history_no, history_date, history_loc, history_status, receipt_no
+	    ) VALUES (
+	    	HISTORY_SEQ.NEXTVAL, SYSDATE, #{clinicNo},'HS001',#{receiptNo}
+	    )  
+	
+	</insert>
+	
+	
+	
+	
+	<insert id="insertEvaluation">
+		insert into evaluation (
+			evl_no, receipt_no
+		) values (
+			EVALUATION_SEQ.NEXTVAL,#{receiptNo}
+		)
+	
+	</insert>
+	
+	
+	<select id="getMedicineRequestList" resultType="medicineRequestVO">
+		
+		SELECT
+		    mr.medicine_request_no, mr.mdcin_no, mdcin_name, medicine_request_quantity,medicine_request_unit, medicine_request_person, mem_name, medicine_request_date ,
+            medicine_result_agree, c.code_name
+		FROM
+		    medicine_request mr , emp e , member m ,medicine me, MEDICINE_REQUEST_RESULT re, common_code c
+		where mr.medicine_request_person = e.emp_no
+		and m.mem_no = e.mem_no
+		and mr.mdcin_no = me.mdcin_no
+		and mr.MEDICINE_REQUEST_NO =re.MEDICINE_REQUEST_NO
+		and c.code_no = re.medicine_result_agree
+	</select>
+	
+	
+	<select id="getTodayDoctors" resultType="memberVO">
+		select emp_no, mem_name
+	    from emp e, member m
+	    where emp_status='ES001'
+	    and e.mem_no = m.mem_no
+	</select>
+	
+	
+	<select id="getDoctorsReservList" parameterType="clinicReservationVO" resultType="clinicReservationVO">
+		SELECT
+	     reserv_no,reserv_date, reserv_time, reserv_memo, c.emp_no, m.mem_name emp_name ,c.mem_no, pm.mem_name mem_name, p.patnt_no, pm.mem_age, pm.mem_gender
+	    FROM
+	    clinic_reservation c, emp e, member m , member pm, patient p 
+	    where reserv_date = #{reservDate}
+	    and c.emp_no = e.emp_no
+	    and e.mem_no = m.mem_no
+	    and c.mem_no = pm.mem_no
+	    and c.mem_no = p.mem_no
+	    and c.reserv_status='N'
+	</select>
+	
+	
+	<update id="mediRequestAdmit" parameterType="medicineRequestResultVO">
+		UPDATE medicine_request_result
+		    SET
+		       medicine_result_agree ='AS002',
+		       medicine_result_disagree='',
+		       medicine_result_date= sysdate,
+		       medicine_result_emp = #{empNo}
+		WHERE
+		    medicine_request_no= #{medicineRequestno}
+	</update>
+	
+	
+	<update id="mediRequestRefuse" parameterType="medicineRequestResultVO">
+		UPDATE medicine_request_result
+		    SET
+		       medicine_result_agree ='AS003',
+		       medicine_result_disagree= #{medicineResultdisagree},
+		       medicine_result_date= sysdate,
+		       medicine_result_emp = #{empNo}
+		WHERE
+		    medicine_request_no= #{medicineRequestno}
+	</update>
+	
+	<select id="getEquipmentRequestList" resultType="repairRequestVO">
+		select 
+			r.repair_no
+			, repair_date
+			, repair_person
+			, e.eq_no
+			, eq_name
+			, eq_company
+			, e.eq_loc
+			, cc.code_name loc_name
+			, eq_model
+			, eq_status
+			, c.code_name status_name,
+			rr.repair_result_agree
+			,rc.code_name result_name
+			,repair_person
+			, mem_name repairPersonName
+		from EQUIP_REPAIR_REQUEST r, medical_equip e, common_code c, common_code cc, equip_repair_result rr, common_code rc, emp emp, member m
+		    where r.eq_no = e.eq_no
+		    and e.eq_status = c.code_no
+		    and e.eq_loc = cc.code_no
+		    and r.repair_no = rr.repair_no
+		    and rr.repair_result_agree = rc.code_no
+		    and r.repair_person = emp.emp_no
+   			and m.mem_no = emp.mem_no
+	</select>
+	
+	<update id="equipRepairAdmit" parameterType="repairResultVO" >
+		UPDATE equip_repair_result
+		    SET
+		        Repair_Result_Agree = 'AS002',
+		        Repair_Result_Date = SYSDATE,
+		        Emp_No = #{empNo}
+			WHERE
+		    repair_no =#{repairNo}
+	</update>
+	
+	
+	
+	<update id="changeEqStatus">
+		update medical_equip
+			set eq_status = 'IS004'
+			where eq_no = (select m.eq_no
+			from equip_repair_result p,equip_repair_request q, medical_equip m
+			where p.repair_no = q.repair_no
+			and q.eq_no = m.eq_no
+			and q.repair_no = #{repairNo})
+	</update>
+	
+	
+	<update id="equipRepairRefuse">
+		UPDATE equip_repair_result
+	    SET
+	        repair_result_agree = 'AS003',
+	        repair_result_disagree = #{repairResultdisagree},
+	        repair_result_date = SYSDATE,
+	        emp_no = #{empNo}
+			WHERE
+	    	repair_no = #{repairNo}
+	</update>
+	
+	<select id="getReceiveList" resultType="memberVO">
+		SELECT 
+			DISTINCT 
+			m.mem_no
+			, mem_name
+			, r.receipt_no
+			, r.patnt_no
+			, mem_age
+			, mem_gender 
+		FROM member m
+			JOIN patient p ON m.mem_no = p.mem_no
+			JOIN receipt r ON r.patnt_no = p.patnt_no
+			LEFT JOIN history h ON h.receipt_no = r.receipt_no
+		WHERE history_loc = 'LOC012'
+			AND history_status = 'HS001'
+			AND h.receipt_no IS NOT NULL
+	</select>
+	
+	<select id="getMulli" parameterType="int" resultType="int">
+		SELECT COUNT(*) AS mulliCnt
+			FROM "ORDER" o, chart c, receipt r, common_code cc
+			WHERE o.chart_no = c.chart_no
+			AND c.receipt_no = r.receipt_no
+			AND o.order_code = cc.code_no
+			AND c.receipt_no = #{receiptNo}
+			AND (order_code = 'OD003' or order_code = 'OD008' or order_code = 'OD009')
+	</select>
+	
+	
+	<select id="getSurgery" parameterType="int" resultType="int">
+		select surgery_kind_price
+			from surgery_kind kind, surgery s, "ORDER" o, chart c, receipt r
+		where s.surgery_kind_code = kind.surgery_kind_code
+			and s.order_no = o.order_no
+			and o.chart_no = c.chart_no
+			and c.receipt_no = r.receipt_no
+			and c.receipt_no = #{receiptNo}
+			and order_code = 'OD005'
+	</select>
+	
+	<select id="getHospitalizationData" parameterType="int" resultType="hospitalizationRecordVO">
+		select  
+			o.order_no
+			, rr.HSPTLZ_NO
+			, rr.bed_no
+			, w.ward_no
+			, ward_price
+			, HSPTLZ_START_DATE
+			, HSPTLZ_LEAVE_DATE
+		from "ORDER" o ,chart c, receipt r, HOSPITALIZATION_RECORD rr, bed b, ward w
+		where o.chart_no = c.chart_no
+		    and c.receipt_no = r.receipt_no
+		    and c.receipt_no = #{receiptNo}
+		    and order_code = 'OD004'
+		    and o.order_no = rr.order_no
+		    and rr.bed_no = b.bed_no
+		    and b.ward_no = w.ward_no
+	</select>
+	
+	<!-- <select id="getMRI" parameterType="int" resultType="int">
+		SELECT COUNT(*) AS row_count
+		    FROM "ORDER" o, chart c, receipt r, common_code cc
+		    WHERE o.chart_no = c.chart_no
+		    AND c.receipt_no = r.receipt_no
+		    AND o.order_code = cc.code_no
+		    AND c.receipt_no = #{receiptNo}
+		    AND (order_code = 'OD003' or order_code = 'OD008' or order_code = 'OD009')
+	</select> -->
+	
+	<select id="getMRI" parameterType="int" resultType="int">
+		SELECT COUNT(*) AS row_count
+		    FROM "ORDER" o, chart c, receipt r, common_code cc
+		    WHERE o.chart_no = c.chart_no
+		    AND c.receipt_no = r.receipt_no
+		    AND o.order_code = cc.code_no
+		    AND c.receipt_no = #{receiptNo}
+		    and order_code = 'OD001'
+	</select>
+	
+	<select id="getXRAY"  parameterType="int" resultType="int">
+		select COUNT(*) AS row_count
+		    from "ORDER" o ,chart c, receipt r
+		    where o.chart_no = c.chart_no
+		    and c.receipt_no = r.receipt_no
+		    and c.receipt_no = #{receiptNo}
+		    and order_code = 'OD002'
+	</select>
+	
+	<insert id="doPay" parameterType="receiveVO">
+		<selectKey keyProperty="receiveNo" resultType="receiveVO" order="BEFORE">
+			select receive_seq.nextval as receive_no from dual
+		</selectKey>
+		insert into receive(
+			 receive_no, receive_date, receive_cash, receive_card, receive_type, receive_cost, receive_cost_sum,
+			emp_no, receipt_no, receive_result,mri_price, xray_price,mulli_price,hp_price,surgery_price
+		)values(
+			#{receiveNo},SYSDATE, #{receiveCash}, #{receiveCard},#{receiveType},#{receiveCost},#{receiveCostSum},
+			#{empNo},#{receiptNo},'Y',#{mriPrice},#{xrayPrice},#{mulliPrice},#{hpPrice},#{surgeryPrice}
+		)
+	</insert>
+	
+	<select id="getPaid" parameterType="int" resultType="receiveVO">
+		SELECT
+		    r.receive_no, receive_date, receive_cash,receive_card,receive_type,code_name, receive_cost, receive_cost_sum,
+		    emp_no,receipt_no, receive_result
+		FROM
+		    receive r, common_code c
+		where receipt_no =#{receiptNo}
+		and c.code_no = receive_type
+	</select>
+	
+	<delete id="deleteHistory" parameterType="receiveVO">
+		DELETE FROM history
+		where receipt_no =#{receiptNo} 
+	</delete>
+	
+	
+	<update id="insertReservStatus" parameterType="int">
+		UPDATE clinic_reservation
+		SET
+		    reserv_status = 'Y'
+		WHERE
+		    reserv_no = #{reservNo}
+		    
+	</update>
+	
+	<select id="getMedicineList" resultType="medicineVO">
+		SELECT
+		    mdcin_no,mdcin_name,mdcin_quantity,mdcin_unit, mdcin_company,mdcin_course,mdcin_price
+		FROM
+	   		medicine
+    </select>
+	
+	<select id="getEmpNo" parameterType="int" resultType="int">
+		select emp_no
+		from emp e, member m
+		where e.mem_no = m.mem_no
+		and m.mem_no = #{memNo}
+	</select>
+	
+	<select id="getPreList" parameterType="int" resultType="prescriptionVO">
+		SELECT 
+			c.receipt_no
+			, p.mdcin_no
+			, PRESCRIPTION_DAY
+			,PRESCRIPTION_TOTAL
+			,PRESCRIPTION_FREQUENCY
+			, mdcin_price
+		FROM "ORDER" o, chart c, receipt r, prescription p, medicine m
+		    WHERE o.chart_no = c.chart_no
+		    AND c.receipt_no = r.receipt_no
+		    and order_code = 'OD007'
+            and c.receipt_no = #{receiptNo}
+            and o.order_no = p.order_no
+            and p.mdcin_no = m.mdcin_no
+	</select>
+	
+	<update id="updateReceiptStatus" parameterType="receiveVO">
+		UPDATE receipt
+			SET receipt_status = 'RS004'
+			WHERE
+			    receipt_no = #{receiptNo}
+	</update>
+    
+    
+	
+	
+	
+	
+</mapper>

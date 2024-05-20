@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.mapper.IDoctorListMapper">
+
+	<resultMap type="memberVO" id="docMap">
+		<result property="memName" column="mem_name"/>
+		<result property="memEmail" column="mem_email"/>
+		<collection property="realmList" resultMap="realmMap"/>
+		<collection property="careerList" resultMap="careerMap"/>
+	</resultMap>
+	
+	<resultMap type="realmVO" id="realmMap">
+		<result property="realmName" column="realm_name"/>
+	</resultMap>
+	
+	<resultMap type="careerVO" id="careerMap">
+		<result property="careerName" column="career_name"/>
+	</resultMap>
+
+	<select id="docList" resultMap="docMap">
+	select
+		m.mem_name, m.mem_email, dr.realm_name, dc.career_name
+	from member m, emp e, doctor_realm dr, doctor_career dc
+	where m.mem_no = e.mem_no
+		and e.emp_no = dr.emp_no
+		and e.emp_no = dc.emp_no
+</select>
+</mapper>

@@ -1,0 +1,509 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.mapper.IRadiationMapper">
+		
+	<resultMap type="memberVO" id="orderMap">
+		<id property="orderName" column="code_name"/>
+		<id property="bodyName" column="bodyName"/>
+		<id property="bodyCode" column="body_code"/>
+		<id property="chartDate" column="chart_date"/>
+		<id property="chartRecord" column="chart_record"/>
+		<id property="memName" column="mem_name"/>
+		<id property="memGender" column="mem_gender"/>
+		<id property="memAge" column="mem_age"/>
+		<id property="docName" column="emp_name"/>
+	</resultMap>
+	
+	<resultMap type="memberVO" id="waitingListMap">
+		<id property="chartNo" column="chart_no"/>
+		<result property="memNo" column="mem_no"/>
+		<result property="memName" column="mem_name"/>
+		<result property="memAge" column="mem_age"/>
+		<result property="memGender" column="mem_gender"/>
+		<result property="receiptNo" column="receipt_no"/>
+		<result property="codeName" column="code_name"/>
+		<result property="historyLoc" column="history_loc"/>
+		<result property="ccodeName" column="ccode_name"/>
+		<result property="clinicNo" column="clinic_no"/>
+		<collection property="orderList" resultMap="orderListMap"/>
+	</resultMap>
+	
+	<resultMap type="orderVO" id="orderListMap">
+		<id property="orderNo" column="order_no"/>
+		<result property="chartNo" column="chart_no"/>
+		<result property="orderCode" column="order_name"/>
+		<result property="bodyCode" column="body_code"/>
+		<result property="bodyCodeno" column="body_code_no"/>
+	</resultMap>
+	
+	<resultMap type="memberVO" id="radiationRoomPatntMap">
+		<id property="memNo" column="mem_no"/>
+		<result property="memNo" column="mem_no"/>
+		<result property="memName" column="mem_name"/>
+		<result property="memAge" column="mem_age"/>
+		<result property="memGender" column="mem_gender"/>
+		<result property="clinicNo" column="clinic_no"/>
+		<result property="chartNo" column="chart_no"/>
+		<result property="receiptNo" column="receipt_no"/>
+		<result property="orderVO.orderNo" column="order_no"/>
+		<result property="radiationRoomVO.rocNo" column="roc_no"/>
+		<result property="radiationRoomVO.rocName" column="roc_name"/>
+		<collection property="orderList" resultMap="orderListMap"/>
+	</resultMap> 
+	
+	<select id="getCommentList" resultType="commentVO">
+		select 
+			comment_no
+			, comment_content
+			, ROW_NUMBER() OVER(ORDER BY comment_sequence) comment_sequence
+		from mic_comment
+	</select>
+	
+	<select id="getRadiationRoomList" resultType="radiationRoomVO">
+		SELECT
+		    r.roc_no
+		    , r.roc_name
+		    , r.roc_status
+		    , c.code_name AS roc_status_name
+		    , m.mem_name
+		    , m.mem_gender
+		    , m.mem_age
+		FROM
+		    roc r
+		    INNER JOIN common_code c ON r.roc_status = c.code_no
+		    INNER JOIN common_code cc ON cc.code_name = r.roc_name
+		    LEFT JOIN history h ON cc.code_no = h.history_loc
+		    LEFT JOIN receipt re ON h.receipt_no = re.receipt_no
+		    LEFT JOIN patient p ON re.patnt_no = p.patnt_no
+		    LEFT JOIN member m ON p.mem_no = m.mem_no
+	</select>
+	
+	<select id="getRadiationRoomInfo" parameterType="int" resultType="radiationRoomVO">
+		select
+			r.roc_no
+			, r.roc_name
+			, r.roc_status
+			, c.code_name as roc_status_name
+		from roc r, common_code c
+		where r.roc_status = c.code_no
+		and roc_no = #{roomNo}
+	</select>
+	
+	<select id="getEqList" resultType="equipmentVO">
+		SELECT 
+		    m.eq_no
+		    , m.eq_name
+		    , m.eq_company
+		    , m.eq_model, 
+		    loc.code_name AS eq_loc_name 
+		    , status.code_name AS eq_status_name
+		FROM 
+		    medical_equip m
+		    JOIN common_code loc ON m.eq_loc = loc.code_no
+		    JOIN common_code status ON m.eq_status = status.code_no
+		WHERE 
+		    m.eq_loc IN ('LOC010', 'LOC011')
+		order by eq_no asc
+	</select>
+	
+	<select id="getEqInfo" parameterType="int" resultType="equipmentVO">
+		SELECT 
+		    m.eq_no
+		    , m.eq_name
+		    , m.eq_company
+		    , m.eq_model
+		    , loc.code_name AS eq_loc_name
+		    , status.code_name AS eq_status_name
+		    , eq.eq_description_content as eq_description_content
+		FROM 
+		    medical_equip m
+		    JOIN common_code loc ON m.eq_loc = loc.code_no
+		    JOIN common_code status ON m.eq_status = status.code_no
+		    JOIN equipment_description eq ON m.eq_no = eq.eq_no
+		WHERE 
+		    m.eq_loc IN ('LOC010', 'LOC011') and m.eq_no = #{eqNo}
+	</select>
+	
+	<select id="getCommonCode" parameterType="string" resultType="string">
+		select
+			code_no
+		from common_code
+		where code_name = #{codeName}
+	</select>
+	
+	<update id="updateEqInfo" parameterType="equipmentVO">
+		update medical_equip
+		set
+			eq_name = #{eqName}
+			, eq_company = #{eqCompany}
+			, eq_loc = #{eqLoc}
+			, eq_model = #{eqModel}
+			, eq_status = #{eqStatus}
+		where eq_no = #{eqNo}
+	</update>
+	
+	<update id="updateEqDescription" parameterType="equipmentVO" statementType="CALLABLE">
+		update equipment_description
+		set
+			eq_description_content = #{eqDescriptioncontent}
+		where eq_no = ${eqNo}
+	</update>
+	
+	<insert id="requestRepair" parameterType="repairRequestVO" statementType="CALLABLE">
+		DECLARE
+				v_success Number := 0;    
+			BEGIN
+				BEGIN
+					INSERT INTO equip_repair_request (
+					    repair_no
+					    , repair_person
+					    , repair_date
+					    , eq_no
+					    , repair_reason
+					) VALUES (
+					    equip_repair_request_seq.nextval
+					    , #{repairPerson}
+					    , sysdate
+					    , #{eqNo}
+					    , #{repairReason}
+					);
+					
+					INSERT INTO equip_repair_result (
+					    repair_result_no
+					    , repair_result_agree
+					    , repair_no
+					) VALUES (
+					    equip_repair_result_seq.nextval
+					    , 'AS001'
+					    , equip_repair_request_seq.currval
+					);
+						
+					v_success := 1;
+				    	
+				    IF v_success = 1 THEN
+					   	 COMMIT;
+					END IF;
+					
+					EXCEPTION
+		    			WHEN OTHERS THEN
+		    				v_success := 0;
+		        			ROLLBACK;
+				END;	
+			#{result, mode=OUT, jdbcType=INTEGER} := v_success;
+		END;
+	</insert>
+	
+	<!-- 코멘트 순번 관련 수정하기 -->
+	<insert id="insertComment" parameterType="commentVO">
+		<selectKey keyProperty="commentNo" resultType="int" order="BEFORE">
+			select MIC_COMMENT_SEQ.nextval from dual
+		</selectKey>
+		insert into mic_comment (
+			comment_no
+			, comment_content
+			, comment_sequence
+		) values (
+			#{commentNo}, #{commentContent}, (select max(comment_sequence) + 1 from mic_comment) 
+		)
+	</insert>
+	
+	<delete id="deleteComment" parameterType="int">
+		delete from mic_comment
+		where comment_no = #{commentNo}
+	</delete>
+	
+	<select id="radiationWaitingList" resultMap="waitingListMap">
+		<!-- 수정했음 -->
+		select 
+			m.mem_no
+			, m.mem_name
+			, m.mem_age
+			, m.mem_gender
+			, c.code_name
+			, h.history_loc 
+			, r.receipt_no
+			, cc.code_name as ccode_name
+			, ccc.code_name as order_name
+            , ch.chart_no
+            , comm.code_name as body_code
+            , cl.clinic_no
+		from member m, patient p, receipt r, history h, chart ch, "ORDER" o, common_code c, common_code cc, common_code ccc, common_code comm, clinic cl, emp e
+		where m.mem_no = p.mem_no
+		    and p.patnt_no = r.patnt_no
+		    and h.receipt_no  = r.receipt_no
+		    and r.receipt_no = ch.receipt_no
+		    and ch.chart_no = o.chart_no
+		    and (o.order_code = 'OD001' OR o.order_code = 'OD002')
+		    and c.code_no = h.history_loc
+		    and cc.code_no = h.history_status
+		    and ccc.code_no = o.order_code
+            and comm.code_no = o.body_code
+            and h.history_loc in ('LOC010', 'LOC011', 'LOC014')
+            and o.emp_no = e.emp_no
+            and e.emp_no = cl.emp_no
+        order by ch.chart_date
+	</select>
+		
+	<select id="getPatntOrder" resultMap="orderMap">
+		  select 
+			m.mem_no
+			, c.code_name
+			, o.order_no
+			, o.body_code
+            , cc.code_name bodyName
+			, ch.chart_date
+			, ch.chart_record
+			, m.mem_name, m.mem_gender
+			, m.mem_age, mm.mem_name as emp_name
+		from "ORDER" o, chart ch, patient p, member m, member mm, emp e, common_code c, common_code cc, receipt r
+		where o.chart_no = ch.chart_no
+		    and ch.patnt_no = p.patnt_no
+		    and p.mem_no = m.mem_no
+		    and o.emp_no = e.emp_no
+		    and e.mem_no = mm.mem_no
+		    and (o.order_code = 'OD001' OR o.order_code = 'OD002')
+		    and o.order_code = c.code_no
+            and ch.receipt_no = r.receipt_no
+            and r.receipt_no = #{receiptNo}
+            and o.body_code = cc.code_no
+	</select>
+	
+	<select id="updateComment" parameterType="commentVO">
+		update mic_comment
+		set
+			comment_content = #{commentContent}
+		where comment_no = #{commentNo}
+	</select>
+	
+	<delete id="deleteEquipment" parameterType="int">
+		delete
+		from medical_equip
+		where
+			eq_no = #{eqNo}
+	</delete>
+	
+	<update id="updateHistory" parameterType="historyVO" statementType="CALLABLE">
+		DECLARE
+				v_success Number := 0;
+			BEGIN
+				BEGIN
+					update history
+					set
+						history_loc = #{historyLoc}
+						, history_status = #{historyStatus}
+					where 
+						receipt_no = #{receiptNo};
+				
+					UPDATE roc
+					SET 
+						roc_status = #{radiationRoomVO.rocStatus}
+					WHERE roc_no = #{radiationRoomVO.rocNo};
+					
+					v_success := 1;
+					
+					IF v_success = 1 THEN
+						COMMIT; 
+					END IF;
+				  
+					EXCEPTION
+						WHEN OTHERS THEN
+						v_success := 0;
+						ROLLBACK;
+						
+					END;
+				#{result, mode=OUT, jdbcType=INTEGER} := v_success;
+			END;
+<!-- 		DECLARE
+			  v_success Number := 0;
+			BEGIN
+			  update
+			  	history
+			  set
+			  	history_loc = #{historyLoc}
+			  	, history_status = #{historyStatus}
+			  where 
+			  	receipt_no = #{receiptNo};
+			
+			  IF SQL%ROWCOUNT > 0 THEN
+			    v_success := 1;
+			  END IF;
+			
+			  IF v_success = 1 THEN
+			    UPDATE roc
+			    SET roc_status = #{radiationRoomVO.rocStatus}
+			    WHERE roc_no = #{radiationRoomVO.rocNo};
+			  END IF;
+			  
+			  #{result, mode=OUT, jdbcType=INTEGER} := v_success;
+			  COMMIT; 
+			EXCEPTION
+			  WHEN OTHERS THEN
+			    ROLLBACK;
+			END; -->
+	</update>
+	
+	<!-- 데이터  추가예졍 -->
+	<select id="inRadiationRoomPatntInfo" parameterType="string" resultMap="radiationRoomPatntMap">
+		 select
+			m.mem_no
+		    , m.mem_name
+		    , m.mem_age
+		    , m.mem_gender
+		    , roc.roc_no
+		    , roc.roc_name
+            , ch.chart_no
+            , o.order_no
+            , comm.code_name as order_name
+            , o.body_code as body_code_no
+            , com.code_name as body_code
+            , r.receipt_no
+            , cl.clinic_no
+		from roc roc, common_code cc, history h, receipt r, patient p, member m, chart ch, "ORDER" o, clinic cl, common_code com, common_code comm
+		where h.receipt_no = r.receipt_no
+		and r.patnt_no = p.patnt_no
+		and p.mem_no = m.mem_no
+		and h.history_loc = cc.code_no
+		and roc.roc_name = cc.code_name
+        and ch.receipt_no = r.receipt_no
+        and o.chart_no = ch.chart_no
+        and o.body_code = com.code_no
+        and h.history_status = 'HS004'
+        and cl.emp_no = o.emp_no
+        and o.order_code = comm.code_no
+        and o.order_code in ('OD001', 'OD002')
+		and roc.roc_name = #{rocName}
+	</select>
+	
+	<insert id="insertFileGroup" parameterType="map">
+		INSERT INTO 
+		attachment_group (
+			attachment_group_no
+		) values (
+			attachment_group_seq.nextval
+		)
+		<selectKey keyProperty="attachmentGroupNo" resultType="int" order="AFTER">
+        	SELECT attachment_group_seq.currval AS attachmentGroupNo FROM DUAL
+    	</selectKey>
+	</insert>
+	
+	<insert id="insertFiles" parameterType="attachmentVO">
+		INSERT INTO attachment (
+	        attach_no,
+	        attach_type,
+	        attach_name,
+	        attach_size,
+	        attach_date,
+	        attach_path,
+	        attach_loc,
+	        attachment_group_no
+	    ) VALUES (
+	        attachment_seq.nextval,
+	        #{attachType},
+	        #{attachName},
+	        #{attachSize},
+	        sysdate,
+	        #{attachPath},
+	        #{attachLoc},
+	        #{attachmentGroupNo}
+	    )
+	</insert>
+	
+	<insert id="insertRocRecord" parameterType="rocRecordVO">
+		insert into roc_record (
+			ROC_RECORD_NO
+			, ROC_EQ_NO
+			, ROC_RECORD_CONTENT
+			, ROC_RECORD_DATE
+			, ROC_NO
+			, EMP_NO
+			, ORDER_NO
+			, ATTACHMENT_GROUP_NO
+			, CHART_NO
+		) values (
+			roc_record_seq.nextval
+			, #{rocEqno}
+			, #{rocRecordcontent}
+			, sysdate
+			, #{rocNo}
+			, #{empNo}
+			, #{orderNo}
+			, #{attachmentGroupno}
+			, #{chartNo}
+		)
+		
+	</insert>
+	
+	<select id="getBodyCode" parameterType="int" resultType="orderVO">
+		 select
+            com.code_name as order_code
+			, cc.code_name as body_code_no
+		from "ORDER" o, common_code cc, common_code com
+		where o.order_no = #{orderNo}
+        and o.body_code = cc.code_no
+        and o.order_code = com.code_no
+	</select>
+	
+	<select id="getEmpInfo" parameterType="int" resultType="empVO">
+		SELECT
+		    emp_no
+		    , emp_job
+		    , emp_hire_date
+		    , emp_leave_date
+		    , emp_leave
+		    , emp_licence
+		    , emp_vacation
+		    , mem_no
+		    , emp_status
+		    , emp_department
+		    , emp_superior
+		FROM
+		    emp
+		where mem_no = #{memNo}
+	
+	</select>
+	
+	<select id="checkRequest" resultType="int">
+		 SELECT 
+		 	COUNT(*)
+	     FROM equip_repair_result err, equip_repair_request erq
+	     WHERE err.REPAIR_RESULT_DATE is null
+	     and err.repair_no = erq.repair_no
+	     and erq.eq_no = #{eqNo}
+	</select>
+	
+	<select id="getEquiptList" resultType="equipmentVO">
+		select
+			me.eq_no
+            , me.eq_name
+            , cc.code_name as eq_loc
+		from medical_equip me, common_code cc
+        where
+        	me.eq_loc = cc.code_no
+            and eq_status != 'IS004'
+            and eq_loc in ('LOC010', 'LOC011')
+	</select>
+	
+	<select id="getClinicNo" parameterType="int" resultType="clinicVO">
+		select
+		    cl.clinic_no
+		    , r.receipt_no
+		from "ORDER" o, clinic cl, chart ch, receipt r
+		where 
+		    o.emp_no = cl.emp_no
+		    and o.chart_no = ch.chart_no
+		    and ch.receipt_no = r.receipt_no
+		    and o.order_no = #{orderNo}
+	</select>
+	
+	<update id="updatePatntHistory" parameterType="historyVO">
+		update history
+		set
+			history_loc = #{historyLoc}
+			, history_status = #{historyStatus}
+		where 
+			receipt_no = #{receiptNo}
+	</update>
+	
+</mapper>

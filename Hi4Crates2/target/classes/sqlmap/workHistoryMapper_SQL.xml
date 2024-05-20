@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.mapper.IWorkHistoryMapper">
+	<insert id="startWork">
+		insert into work_history
+			(
+			work_history_no, work_start_time, work_history_date,emp_no
+			)
+		values
+			(
+			work_history_seq.nextval,#{workStartTime},SYSDATE,(select emp_no from emp where mem_no = #{memNo})
+			)
+	</insert>
+	
+	<update id="endWork">
+		update
+			work_history
+		set 
+			work_end_time = #{workEndTime}
+		where
+			emp_no = (select emp_no from emp where mem_no = #{memNo})
+		and work_history_date 
+    		BETWEEN TRUNC(sysdate) AND TRUNC(sysdate) + INTERVAL '1' DAY - INTERVAL '1' SECOND
+	</update>
+	
+	<update id="start">
+		UPDATE
+			EMP
+		SET
+			EMP_STATUS = 'ES001'
+		WHERE
+			MEM_NO = #{memNo}
+	</update>
+	
+	<update id="end">
+		UPDATE
+			EMP
+		SET
+			EMP_STATUS = 'ES002'
+		WHERE
+			MEM_NO = #{memNo}
+	</update>
+</mapper>

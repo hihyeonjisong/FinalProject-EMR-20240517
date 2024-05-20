@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.mapper.IStatisticsMapper">
+	<select id="manCount" parameterType="MemberVO" resultType="Integer">
+		SELECT COUNT(*)
+		FROM Member m
+		INNER JOIN Patient p ON m.mem_no = p.mem_no
+		INNER JOIN Receipt r ON p.patnt_no = r.patnt_no
+		WHERE EXTRACT(YEAR FROM r.receipt_date) = 2024 AND EXTRACT(MONTH FROM r.receipt_date) = 5
+	</select>
+	
+	<select id="dCount" parameterType="MemberVO" resultType="Integer">
+		<![CDATA[
+		SELECT COUNT (*)
+		FROM EMP E, MEMBER M
+		WHERE M.EMP_JOB = '의사' 
+        AND E.MEM_NO = M.MEM_NO
+		AND E.EMP_HIRE_DATE < TO_DATE('2025', 'YYYY')
+		AND E.EMP_LEAVE IS NULL
+		]]>
+	</select>
+	
+	<select id="nCount" parameterType="MemberVO" resultType="Integer">
+		<![CDATA[
+		SELECT COUNT (*)
+		FROM EMP E, MEMBER M
+		WHERE M.EMP_JOB = '간호사' 
+        AND E.MEM_NO = M.MEM_NO
+		AND E.EMP_HIRE_DATE < TO_DATE('2025', 'YYYY')
+		AND E.EMP_LEAVE IS NULL
+		]]>
+	</select>
+	
+	<select id="rCount" parameterType="MemberVO" resultType="Integer">
+		<![CDATA[
+		SELECT COUNT (*)
+		FROM EMP E, MEMBER M
+		WHERE M.EMP_JOB = '방사선사' 
+        AND E.MEM_NO = M.MEM_NO
+		AND E.EMP_HIRE_DATE < TO_DATE('2025', 'YYYY')
+		AND E.EMP_LEAVE IS NULL
+		]]>
+	</select>
+	
+	<select id="pCount" parameterType="MemberVO" resultType="Integer">
+		<![CDATA[
+		SELECT COUNT (*)
+		FROM EMP E, MEMBER M
+		WHERE M.EMP_JOB = '물리치료사' 
+        AND E.MEM_NO = M.MEM_NO
+		AND E.EMP_HIRE_DATE < TO_DATE('2025', 'YYYY')
+		AND E.EMP_LEAVE IS NULL
+		]]>
+	</select>	
+		
+	<select id="oCount" parameterType="MemberVO" resultType="Integer">
+		<![CDATA[
+		SELECT COUNT (*)
+		FROM EMP E, MEMBER M
+		WHERE M.EMP_JOB = '원무과%' 
+        AND E.MEM_NO = M.MEM_NO
+		AND E.EMP_HIRE_DATE < TO_DATE('2025', 'YYYY')
+		AND E.EMP_LEAVE IS NULL
+		]]>
+	</select>
+	
+	<select id="mriCount" parameterType="MemberVO" resultType="Integer">
+		SELECT NVL(SUM(mri_price), 0) mri_price
+			FROM receive
+	</select>
+	
+	<select id="xrayCount" parameterType="MemberVO" resultType="Integer">
+		SELECT NVL(SUM(XRAY_PRICE), 0) XRAY_PRICE
+			FROM receive
+	</select>
+	
+	<select id="phyCount" parameterType="MemberVO" resultType="Integer">
+		SELECT NVL(SUM(MULLI_PRICE), 0) MULLI_PRICE
+			FROM receive
+	</select>
+	
+	<select id="serCount" parameterType="MemberVO" resultType="Integer">
+		SELECT NVL(SUM(SURGERY_PRICE), 0) SURGERY_PRICE
+			FROM receive
+	</select>
+	
+	<select id="hpCount" parameterType="MemberVO" resultType="Integer">
+		SELECT NVL(SUM(HP_PRICE), 0) HP_PRICE
+			FROM receive
+	</select>
+	
+	<select id="moneyMonth" parameterType="MemberVO" resultType="Integer">
+		SELECT NVL(SUM(receive_cost_sum), 0) receive_cost_sum
+		FROM receive
+		WHERE receive_result = 'Y'
+			AND EXTRACT(YEAR FROM receive_date) = 2024 
+			AND EXTRACT(MONTH FROM receive_date) = 5
+	</select>
+	
+	<select id="yearGet" resultType="Integer">
+		SELECT SUM(RECEIVE_COST_SUM) AS receive_cost_sum
+		FROM receive
+		WHERE EXTRACT(YEAR FROM receive_date) = 2024
+	</select>
+	
+	<select id="monthGet" resultType="Integer">
+		SELECT SUM(RECEIVE_COST_SUM) AS receive_cost_sum
+		FROM receive
+		WHERE EXTRACT(MONTH FROM receive_date) = 5
+	</select>
+	
+	
+</mapper>

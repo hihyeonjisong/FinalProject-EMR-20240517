@@ -1,0 +1,19 @@
+.main-img{
+    position: absolute;
+    height: 7rem !important;
+    width: 20rem !important;
+    top: 10% !important;
+    left: 17% !important; 
+}
+.authentication .authentication-cover .aunthentication-cover-content img{
+    margin: 0 auto !important;
+    width: 20rem !important;
+    height: 15rem !important;
+}
+.authentication-cover{
+    background-image: url(/resources/img/backmain.jpg) !important;
+}
+
+.authentication .authentication-cover:before{
+    background-color: rgb(255, 255, 255, 0.1) !important;
+}

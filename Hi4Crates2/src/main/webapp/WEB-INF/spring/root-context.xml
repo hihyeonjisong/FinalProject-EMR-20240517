@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd">
+	
+	<!-- Root Context: defines shared resources visible to all other web components -->
+		
+		
+	 <!-- dataSource : 데이터베이스와 관련된 정보를 설정한다 -->
+	 <bean id="dataSource" class="org.apache.commons.dbcp2.BasicDataSource" destroy-method="close">
+		<property name="driverClassName" value="net.sf.log4jdbc.sql.jdbcapi.DriverSpy"/>
+	  	<property name="url" value="jdbc:log4jdbc:oracle:thin:@112.220.114.130:1521:xe"/>
+<!-- 		<property name="driverClassName" value="oracle.jdbc.driver.OracleDriver"/> -->
+<!-- 	  	<property name="url" value="jdbc:oracle:thin:@112.220.114.130:1521:xe"/> -->
+		<property name="username" value="team4_202310F"></property>
+		<property name="password" value="java"></property>
+		<property name="initialSize" value="2"/>
+		<property name="maxTotal" value="3"/>
+		<property name="maxWaitMillis" value="2000"/>
+		<property name="defaultAutoCommit" value="false"/>
+	</bean>
+	
+	<!-- 카카오로그인 API -->
+	<bean id="client_id" class="java.lang.String">
+		<constructor-arg value="API_KEY"/>
+	</bean>
+	
+	<bean id="redirect_uri" class="java.lang.String">
+		<constructor-arg value="http://localhost/callback"/>
+	</bean>
+	
+	<bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<property name="dataSource" ref="dataSource"/>
+		<property name="mapperLocations" value="classpath:/sqlmap/**/*_SQL.xml"/>
+		<property name="configLocation" value="/WEB-INF/mybatisAlias/mybatisAlias.xml"></property>
+	</bean>
+	
+	<bean id="sqlSessionTemplate" class="org.mybatis.spring.SqlSessionTemplate">
+		<constructor-arg name="sqlSessionFactory" index="0" ref="sqlSessionFactory"></constructor-arg>
+	</bean>
+	
+	<!-- 이메일 빈 등록 -->
+	<bean id="mailSender" class="org.springframework.mail.javamail.JavaMailSenderImpl">
+		<property name="host" value="smtp.gmail.com"></property>
+		<property name="port" value="587"></property>
+		<property name="username" value="hi4crates@gmail.com"></property>
+		<property name="password" value="mxtejnxayykcecst"></property>
+		
+		<!-- 보안 SSL 설정 -->
+		<property name="javaMailProperties">
+			<props>
+				<prop key="mail.smtp.auth">true</prop>
+				<prop key="mail.smtp.starttls.enable">true</prop>
+<!-- 				<prop key="mail.smtp.ssl.protocols">TLSv1.2</prop> -->
+				<prop key="mail.smtps.checkserveridentity">true</prop>
+				<prop key="mail.smtps.ssl.trust">*</prop>
+				<prop key="mail.debug">true</prop>
+				<prop key="mail.smtp.socketFactory.class">javax.net.ssl.SSLSocketFactory</prop>
+			</props>
+		</property>
+	</bean>
+	
+	
+	<!-- 
+		Mapper 인터페이스 설정
+		개발자가 직접 DAO를 설정하지 않아도 자동으로 Mapper 인터페이스를 활용하는 객체를 생성하게 된다. 
+	-->
+	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+		<property name="basePackage" value="kr.or.ddit.mapper"/>
+	</bean>
+	
+	<!-- 파일 -->
+	<bean id="multipartResolver" 
+		class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+		<!-- 하나의 요청당 파일 업로드 용량  -->
+		<property name="maxUploadSize" value="314528"></property>
+		<!-- 메모리에 저장되는 최대 용량 -->
+		<property name="maxInMemorySize" value="314528"></property>
+		<!-- 인코딩 설정 -->
+		<property name="defaultEncoding" value="UTF-8"></property>
+	</bean>
+	
+	
+	<!-- API 관련 Bean 등록 시작 -->	
+	
+	<!-- 카카오 API KEY값 (REST API KEY, ADMIN KEY, JAVASCRIPT_KEY) 추가예정... -->
+	
+	
+	
+	<!-- API 관련 Bean 등록 끝 -->	
+	
+	<!-- uploadPath Bean 등록 -->
+	<bean id="uploadPath" class="java.lang.String">
+	 	<constructor-arg value="D:\01.SPRING1\workspace_spring2\.metadata\.plugins\org.eclipse.wst.server.core\tmp0\wtpwebapps\Hi4Crates\resources\upload" />
+	</bean>
+	
+	
+	
+</beans>

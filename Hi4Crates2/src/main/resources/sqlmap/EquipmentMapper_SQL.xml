@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.mapper.IEquipmentMapper">
+	
+	<select id="list" resultType="equipmentVO">
+		SELECT 
+		    m.eq_no
+		    , m.eq_name
+		    , m.eq_company
+		    , m.eq_model, 
+		    loc.code_name AS eq_loc_name 
+		    , status.code_name AS eq_status_name
+		FROM 
+		    medical_equip m
+		    JOIN common_code loc ON m.eq_loc = loc.code_no
+		    JOIN common_code status ON m.eq_status = status.code_no
+		order by eq_no asc
+		
+	</select>
+	
+	<select id="detail" resultType="equipmentVO" parameterType="int">
+		select
+			m.eq_no,
+		    m.eq_name,
+		    m.eq_company,
+		    m.eq_loc,
+		    m.eq_model,
+		    m.eq_status,
+            ed.eq_description_content
+		FROM
+		    medical_equip m, equipment_description ed
+		where m.eq_no = ed.eq_no
+        and m.eq_no = #{eqNo}
+	</select>
+	
+	<update id="update" parameterType="equipmentVO" statementType="CALLABLE">
+	    DECLARE
+				  v_success Number := 0;
+				BEGIN
+				  update
+				  	MEDICAL_EQUIP
+				  set 
+	                EQ_NAME = #{eqName}, 
+	                EQ_COMPANY = #{eqCompany}, 
+	                EQ_LOC = #{eqLoc}, 
+	                EQ_MODEL = #{eqModel}, 
+	                EQ_STATUS= #{eqStatus}
+				  where 
+				  	EQ_NO = #{eqNo};
+				
+				  IF SQL%ROWCOUNT > 0 THEN
+				    v_success := 1;
+				  END IF;
+				
+				  IF v_success = 1 THEN
+				    UPDATE EQUIPMENT_DESCRIPTION
+				    SET EQ_DESCRIPTION_CONTENT = #{eqDescriptioncontent}
+				    WHERE EQ_NO = #{eqNo};
+				  END IF;
+	              
+	              #{result, mode=OUT, jdbcType=INTEGER} := v_success;
+				  COMMIT; 
+				EXCEPTION
+				  WHEN OTHERS THEN
+				    ROLLBACK;
+				END;
+	</update>
+	
+	<delete id="delete" parameterType="equipmentVO">
+		BEGIN
+		    DELETE FROM MEDICAL_EQUIP WHERE EQ_NO = #{eqNo};
+		
+		    DELETE FROM EQUIPMENT_DESCRIPTION WHERE EQ_NO = #{eqNo};
+		
+		    COMMIT;
+		EXCEPTION
+		    WHEN OTHERS THEN
+		        ROLLBACK;
+		END;
+	</delete>
+	
+	<insert id="addEquip" parameterType="equipmentVO">
+		INSERT INTO MEDICAL_EQUIP (EQ_NO, EQ_NAME, EQ_COMPANY, EQ_LOC, EQ_MODEL, EQ_STATUS)
+			VALUES (MEDICAL_EQUIP_SEQ.nextval, #{eqName}, #{eqCompany}, #{eqLoc}, #{eqModel}, #{eqStatus})
+			
+		<selectKey keyProperty="eqNo" resultType="int" order="AFTER">
+		    SELECT MEDICAL_EQUIP_SEQ.currval FROM dual
+		</selectKey>
+	</insert>
+	
+	<select id="eqNo" resultType="java.lang.Integer">
+	    SELECT MEDICAL_EQUIP_SEQ.currval FROM dual
+	</select>
+	
+	<insert id="addDesc" parameterType="equipmentVO">
+		INSERT INTO EQUIPMENT_DESCRIPTION (EQ_DESCRIPTION_NO, EQ_DESCRIPTION_CONTENT,EQ_NO)
+			VALUES (EQUIPMENT_DESCRIPTION_SEQ.nextval, #{eqDescriptioncontent}, #{eqNo})
+	</insert>
+	
+	<select id="getPhysicalEquip" resultType="equipmentVO">
+		SELECT 
+		    m.eq_no
+		    , m.eq_name
+		    , m.eq_company
+		    , m.eq_model, 
+		    loc.code_name AS eq_loc_name 
+		    , status.code_name AS eq_status_name
+		FROM 
+		    medical_equip m
+		    JOIN common_code loc ON m.eq_loc = loc.code_no
+		    JOIN common_code status ON m.eq_status = status.code_no
+		WHERE 
+		    m.eq_loc = 'LOC008'
+		order by eq_no asc
+	</select>
+
+</mapper>

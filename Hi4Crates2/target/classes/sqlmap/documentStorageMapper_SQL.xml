@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.mapper.IDocumentStorageMapper">
+	
+	<select id="getList" resultType="documentStorageVO">
+		SELECT
+		    a.attach_no,
+		    a.attach_type,
+		    a.attach_name,
+		    a.attach_size,
+		    a.attach_date,
+		    a.attach_path,
+		    a.attach_loc,
+		    a.attachment_group_no,
+		    c.patnt_no,
+		    m.mem_name,
+		    m.mem_regno1
+		FROM
+		    attachment a, chart c, member m, patient p
+		where
+		    a.attachment_group_no=c.attachment_group_no
+		    and m.mem_no=p.mem_no
+		    and p.patnt_no=c.patnt_no
+	</select>
+	
+	<select id="getDiagnosisPaperList" resultType="diagnosisPaperVO">
+		SELECT
+		    d.diagnosis_paper_no,
+		    d.diagnosis_paper_issue_date,
+		    d.diagnosis_paper_content,
+		    d.diagnosis_paper_purpose,
+		    d.diagnosis_paper_type,
+		    d.receipt_no,
+		    d.diagnosis_paper_remark,
+		    d.diagnosis_paper_diag_date,
+		    d.diagnosis_paper_onset_date,
+		    d.diagnosis_type,
+		    m.mem_name,
+		    m.mem_regno1
+		FROM
+		    diagnosis_paper d, member m, receipt r, patient p
+		where d.receipt_no=r.receipt_no
+		and r.patnt_no=p.patnt_no
+		and p.mem_no= m.mem_no
+	</select>
+	
+	<select id="getradiationList" resultType="documentStorageVO">
+	
+		SELECT
+		    a.attach_no,
+		    a.attach_type,
+		    a.attach_name,
+		    a.attach_size,
+		    a.attach_date,
+		    a.attach_path,
+		    a.attach_loc,
+		    a.attachment_group_no,
+            p.patnt_no,
+            c.chart_no,
+		    m.mem_name,
+		    m.mem_regno1
+		FROM
+		    attachment a, roc_record r, member m, patient p, chart c
+		where
+		    a.attachment_group_no=r.attachment_group_no
+		    and m.mem_no=p.mem_no
+		    and c.chart_no=r.chart_no
+            and c.patnt_no=p.patnt_no
+
+	
+	</select>
+	
+	<select id="getPatntInfo" parameterType="int" resultType="memberVO">
+				
+		SELECT
+		    m.mem_no,
+		    m.mem_name,
+		    m.mem_age,
+		    m.mem_gender,
+		    m.mem_regno1,
+		    m.mem_regno2,
+		    c.chart_no,
+		    c.chart_date,
+		    c.receipt_no,
+		    c.patnt_no,
+		    c.attachment_group_no,
+		    r.attachment_group_no,
+		    D.DIAGNOSIS_PAPER_NO
+		FROM
+		    member m
+		INNER JOIN
+		    patient p ON m.mem_no = p.mem_no
+		INNER JOIN
+		    chart c ON p.patnt_no = c.patnt_no
+		LEFT OUTER JOIN
+		    roc_record r ON c.chart_no = r.chart_no
+		LEFT OUTER JOIN
+		    DIAGNOSIS_PAPER D ON D.RECEIPT_NO=C.RECEIPT_NO
+		WHERE
+		    p.patnt_no = #{patntNo}
+		       AND (c.attachment_group_no IS NOT NULL
+		         OR r.attachment_group_no IS NOT NULL
+		         OR D.DIAGNOSIS_PAPER_NO IS NOT NULL)
+	
+	</select>
+	
+	<select id="getSelChartImgList" parameterType="int" resultType="documentStorageVO">
+		SELECT
+		    a.attach_no,
+		    a.attach_type,
+		    a.attach_name,
+		    a.attach_size,
+		    a.attach_date,
+		    a.attach_path,
+		    a.attach_loc,
+		    a.attachment_group_no,
+		    c.patnt_no,
+		    m.mem_name,
+		    m.mem_regno1
+		FROM
+		    attachment a, chart c, member m, patient p
+		where
+		    a.attachment_group_no=c.attachment_group_no
+		    and m.mem_no=p.mem_no
+		    and p.patnt_no=c.patnt_no
+            and c.receipt_no=#{receiptNo}
+
+	</select>
+	
+	<select id="getSelDiagnosisPaperList" parameterType="int" resultType="diagnosisPaperVO">
+		SELECT
+		    d.diagnosis_paper_no,
+		    d.diagnosis_paper_issue_date,
+		    d.diagnosis_paper_content,
+		    d.diagnosis_paper_purpose,
+		    d.diagnosis_paper_type,
+		    d.receipt_no,
+		    d.diagnosis_paper_remark,
+		    d.diagnosis_paper_diag_date,
+		    d.diagnosis_paper_onset_date,
+		    d.diagnosis_type,
+		    m.mem_name,
+		    m.mem_regno1
+		FROM
+		    diagnosis_paper d, member m, receipt r, patient p
+		where d.receipt_no=r.receipt_no
+		and r.patnt_no=p.patnt_no
+		and p.mem_no= m.mem_no
+        and r.receipt_no=#{receiptNo}
+	
+	</select>
+	
+	<select id="getSelRadiagionList" parameterType="int" resultType="documentStorageVO">
+	
+		SELECT
+		    a.attach_no,
+		    a.attach_type,
+		    a.attach_name,
+		    a.attach_size,
+		    a.attach_date,
+		    a.attach_path,
+		    a.attach_loc,
+		    a.attachment_group_no,
+            p.patnt_no,
+            c.chart_no,
+            c.receipt_no,
+		    m.mem_name,
+		    m.mem_regno1
+		FROM
+		    attachment a, roc_record r, member m, patient p, chart c
+		where
+		    a.attachment_group_no=r.attachment_group_no
+		    and m.mem_no=p.mem_no
+            and c.chart_no=r.chart_no
+            and c.patnt_no=p.patnt_no
+            and c.receipt_no=#{receiptNo}	
+	
+	</select>
+
+</mapper>

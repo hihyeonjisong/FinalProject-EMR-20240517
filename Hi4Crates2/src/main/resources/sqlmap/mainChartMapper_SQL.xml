@@ -1,0 +1,692 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.mapper.IMainChartMapper">
+
+	
+	<resultMap type="chartVO" id="patientChartMap">
+		<id property="chartNo" column="chart_no"/>
+		<result property="chartDate" column="chart_date"/>
+		<result property="chartRecord" column="chart_record"/>
+		<result property="disNo" column="dis_no"/>
+		<result property="disNameEn" column="dis_name_en"/>
+		<result property="disNameKr" column="dis_name_kr"/>
+		<result property="disMain" column="dis_main"/>
+	</resultMap>
+
+	<select id="getEmpNo" parameterType="int" resultType="int">
+		select
+			emp_no
+		from 
+			emp
+		where
+			mem_no=#{memNo}
+	
+	</select>
+
+	<select id="getWatingList" parameterType="int" resultType="memberVO">
+		SELECT
+		      M.MEM_NO
+		    , M.MEM_NAME
+		    , M.MEM_GENDER
+		    , M.MEM_AGE
+		    , M.MEM_REGNO1
+		    , M.MEM_TEL
+		    , R.RECEIPT_NO
+		    , R.RECEIPT_REASON
+		    , H.HISTORY_NO
+		    , H.HISTORY_LOC
+		    , CD.CODE_NAME
+		    , CC.CODE_NAME AS ccodeName
+		FROM
+		    MEMBER M
+		INNER JOIN
+		    PATIENT P ON P.MEM_NO = M.MEM_NO
+		INNER JOIN
+		    RECEIPT R ON P.PATNT_NO = R.PATNT_NO
+		INNER JOIN
+		    EMP E ON E.EMP_NO = R.EMP_NO
+		INNER JOIN
+		    MEMBER EM ON EM.MEM_NO = E.MEM_NO
+		INNER JOIN
+		    HISTORY H ON H.RECEIPT_NO = R.RECEIPT_NO
+		INNER JOIN
+		    COMMON_CODE CD ON CD.CODE_NO = H.HISTORY_LOC
+		INNER JOIN
+		    COMMON_CODE CC ON CC.CODE_NO = H.HISTORY_STATUS
+		WHERE
+		    R.EMP_NO = #{empNo}
+		AND
+		    H.HISTORY_LOC IN ((SELECT CLINIC_NO FROM CLINIC WHERE EMP_NO = #{empNo}),'LOC015')
+		ORDER BY H.HISTORY_LOC
+            
+
+            
+	</select>
+	
+	<select id="getPatientChart" parameterType="int" resultMap="patientChartMap">
+		SELECT
+		    c.chart_no,
+		    c.chart_date,
+		    c.chart_record
+		FROM
+		    member    m,
+		    chart     c,
+		    patient   p
+		WHERE
+		        m.mem_no = p.mem_no
+		    AND c.patnt_no = p.patnt_no
+		    AND m.mem_no = #{memNo}
+	</select>
+	
+	<select id="getDiseaseList" parameterType="int" resultType="diagnosisVO">
+		SELECT
+		    d.dis_no,
+		    d.chart_no,
+		    d.dis_main,
+		    ds.dis_name_kr
+		FROM
+		    diagnosis d,
+		    disease   ds
+		WHERE
+		        d.dis_no = ds.dis_no
+		    AND chart_no = #{chartNo}
+	</select>
+	
+	<select id="patientPreview" parameterType="memberVO" resultType="memberVO">
+		SELECT 
+		    m.mem_no, 
+		    m.mem_name, 
+		    m.mem_gender, 
+		    m.mem_age,
+		    m.mem_regno1, 
+		    m.mem_tel, 
+		    p.patnt_no, 
+		    r.receipt_no, 
+		    r.receipt_reason,
+		    c.code_no,
+		    c.code_name, 
+		    cc.code_name AS ccodeName,
+		    ch.chart_no,
+		    ch.chart_record
+		FROM 
+		    member m 
+		    JOIN patient p ON m.mem_no = p.mem_no
+		    JOIN (
+		        SELECT 
+		            r1.patnt_no,
+		            MAX(r1.receipt_no) AS max_receipt_no
+		        FROM 
+		            receipt r1
+		        JOIN history h1 ON h1.receipt_no = r1.receipt_no
+		        WHERE 
+		            r1.emp_no = #{empNo}
+		        GROUP BY 
+		            r1.patnt_no
+		    ) max_receipt ON p.patnt_no = max_receipt.patnt_no
+		    JOIN receipt r ON max_receipt.max_receipt_no = r.receipt_no
+		    JOIN history h ON h.receipt_no = r.receipt_no
+		    JOIN common_code c ON c.code_no = h.history_loc
+		    JOIN common_code cc ON cc.code_no = h.history_status
+		    LEFT JOIN chart ch ON ch.receipt_no = r.receipt_no
+		WHERE 
+		    m.mem_no = #{memNo}
+
+	</select>
+	
+	<select id="getPreDiagnosis" parameterType="int" resultType="preDiagnosisVO">
+		SELECT
+		    pre_diagnosis_no,
+		    pre_diagnosis_exp,
+		    pre_diagnosis_disease,
+		    pre_diagnosis_allergy,
+		    pre_diagnosis_pregnancy,
+		    patnt_no,
+		    receipt_no
+		FROM
+		    pre_diagnosis
+		where 
+		   receipt_no=#{receiptNo}
+	</select>
+	
+	<insert id="orderRadiation" parameterType="orderVO" useGeneratedKeys="true">
+		<selectKey keyProperty="orderNo" resultType="int" order="BEFORE">
+			select order_seq.nextval from dual
+		</selectKey>
+			insert into "ORDER"(
+				order_no, 
+				order_code,
+				body_code, 
+				chart_no, 
+				emp_no
+			)
+			values( 
+				#{orderNo},
+				#{orderCode},
+				#{bodyCode}, 
+				#{chartNo}, 
+				#{empNo} 
+			)
+	</insert>
+
+	<insert id="createChart" parameterType="chartVO" useGeneratedKeys="true">
+		<selectKey keyProperty="chartNo" resultType="int" order="BEFORE">
+			select chart_seq.nextval from dual
+		</selectKey>
+	
+		insert into chart(
+			chart_no, 
+			chart_date, 
+			chart_record,
+			receipt_no, 
+			patnt_no
+		)
+		values(
+			#{chartNo}, 
+			sysdate, 
+			#{chartRecord},
+			#{receiptNo},
+			#{patntNo}
+		)
+	
+	</insert>
+	
+	<update id="updateChart" parameterType="chartVO">
+		UPDATE 
+			chart
+		SET
+		   	chart_record = #{chartRecord}
+		    
+		WHERE
+		   		 chart_no = #{chartNo}
+				
+	</update>
+	
+	<select id="getMedicineList" parameterType="int" resultType="medicineVO">
+	
+		select 
+			m.mdcin_no, 
+			m.mdcin_name 
+		from 
+			medicine m, 
+			prescription p, 
+			"ORDER" o, 
+			chart c
+		where 
+			m.mdcin_no=p.mdcin_no
+			and p.order_no=o.order_no
+			and o.chart_no=c.chart_no
+			and c.chart_no=#{chartNo}
+			
+	
+	</select>
+	
+	<select id="getPtList" parameterType="int" resultType="commonCodeVO">
+		
+		select distinct
+			cc.code_name
+		from 
+			"ORDER" o, 
+			chart c, 
+			common_code cc
+		where 
+			c.chart_no=o.chart_no
+			and cc.code_no=o.order_code
+			and o.order_code IN ('OD003', 'OD008', 'OD009')
+			and o.chart_no=#{chartNo}
+		
+	</select>
+	
+	<select id="getBodyList" parameterType="int" resultType="commonCodeVO">
+		    
+		select distinct
+			cc.code_name
+		from 
+			"ORDER" o, 
+			chart c, 
+			common_code cc
+		where 
+			c.chart_no=o.chart_no
+			and cc.code_no=o.body_code
+			and o.chart_no=#{chartNo}
+	
+	
+	</select>
+	
+	<select id="searchDisease" resultType="diseaseVO">
+		SELECT
+		    dis_no,
+		    dis_name_en,
+		    dis_name_kr
+		FROM
+		    disease
+	</select>
+	<select id="searchMedicine" resultType="medicineVO">
+		select
+			mdcin_no
+			,mdcin_name
+		from 
+			medicine
+	</select>
+	
+	<select id="searchSurgery" resultType="surgeryKindVO">
+		SELECT
+		    surgery_kind_code
+		    ,surgery_kind_name
+		FROM
+		    surgery_kind
+
+
+	</select>
+	
+	<insert id="insertChart" parameterType="chartVO">
+		<selectKey keyProperty="chartNo" resultType="int" order="BEFORE">
+			select chart_seq.nextval from dual
+		</selectKey>
+			INSERT INTO chart (
+			    chart_no,
+			    chart_date,
+			    chart_record,
+			    receipt_no,
+			    patnt_no
+			) VALUES (
+			    #{chartNo},
+			    sysdate,
+			    #{chartRecord},
+			    #{receiptNo},
+			    #{patntNo}
+			)
+	</insert>
+	
+	<insert id="insertDiagnosis" parameterType="diagnosisVO">
+		<selectKey keyProperty="dgnssNo" resultType="int" order="BEFORE">
+			select DIAGNOSIS_SEQ.nextval from dual
+		</selectKey>
+			INSERT INTO diagnosis (
+			    dgnss_no,
+			    dis_no,
+			    chart_no,
+			    dis_main
+			) VALUES (
+			    #{dgnssNo},
+			    #{disNo},
+			    #{chartNo},
+			    #{disMain}
+			)
+	</insert>
+	
+	<insert id="insertSecondDiagnosis" parameterType="diagnosisVO">
+		<selectKey keyProperty="dgnssNo" resultType="int" order="BEFORE">
+			select DIAGNOSIS_SEQ.nextval from dual
+		</selectKey>
+			INSERT INTO diagnosis (
+			    dgnss_no,
+			    dis_no,
+			    chart_no
+			) VALUES (
+			    #{dgnssNo},
+			    #{disNo},
+			    #{chartNo}
+			)
+	</insert>
+	
+	<insert id="insertMedicineOrder" parameterType="orderVO">
+		<selectKey keyProperty="orderNo" resultType="int" order="BEFORE">
+			select order_seq.nextval from dual
+		</selectKey>
+			INSERT INTO "ORDER" (
+			    order_no,
+			    order_code,
+			    chart_no,
+			    emp_no
+			) VALUES (
+			    #{orderNo},
+			    #{orderCode},
+			    #{chartNo},
+			    #{empNo}
+			)
+	</insert>
+	
+	<insert id="insertSurgeryOrder" parameterType="orderVO">
+		<selectKey keyProperty="orderNo" resultType="int" order="BEFORE">
+			select order_seq.nextval from dual
+		</selectKey>
+			INSERT INTO "ORDER" (
+			    order_no,
+			    order_code,
+			    chart_no,
+			    body_code,
+			    emp_no
+			) VALUES (
+			    #{orderNo},
+			    #{orderCode},
+			    #{chartNo},
+			    #{bodyCode},
+			    #{empNo}
+			)			
+		
+		
+	</insert>
+	
+	<insert id="insertSurgeryReservation" parameterType="surgeryReservationVO">
+		<selectKey keyProperty="surgeryReservationNo" resultType="int" order="BEFORE">
+			select SURGERY_RESERVATION_SEQ.nextval from dual
+		</selectKey>
+		INSERT INTO surgery_reservation (
+		    surgery_reservation_no,
+		    order_no,
+		    patnt_no,
+		    surgery_doctor,
+		    surgery_kind_code
+		) VALUES (
+		    #{surgeryReservationNo}
+		    ,#{orderNo}
+		    ,#{patntNo}
+		    ,#{surgeryDoctor}
+		    ,#{surgeryKindCode}
+		
+		)
+			
+		
+	</insert>
+	
+	<insert id="insertPrescription" parameterType="prescriptionVO">
+		<selectKey keyProperty="prescriptionNo" resultType="int" order="BEFORE">
+			select PRESCRIPTION_SEQ.nextval from dual
+		</selectKey>
+			INSERT INTO prescription (
+			    prescription_no
+			    ,order_no
+			    ,mdcin_no
+			    ,prescription_day
+			    ,prescription_total
+			    ,prescription_frequency
+			) VALUES (
+			    #{prescriptionNo}
+			    ,#{orderNo}
+			    ,#{mdcinNo}
+			    ,#{prescriptionDay}
+			    ,#{prescriptionTotal}
+			    ,#{prescriptionFrequency}
+			)
+	</insert>
+	
+	<insert id="insertPtOrder" parameterType="orderVO">
+		<selectKey keyProperty="orderNo" resultType="int" order="BEFORE">
+			select order_seq.nextval from dual
+		</selectKey>
+		INSERT INTO "ORDER" (
+		    order_no,
+		    order_code,
+		    body_code,
+		    chart_no,
+		    emp_no
+		) VALUES (
+		    #{orderNo},
+			#{orderCode},
+			#{bodyCode},
+			#{chartNo},
+		    #{empNo}
+		)
+	</insert>
+	
+	<insert id="insertHospitalizationOrder" parameterType="orderVO">
+		<selectKey keyProperty="orderNo" resultType="int" order="BEFORE">
+			select order_seq.nextval from dual
+		</selectKey>
+			INSERT INTO "ORDER" (
+			    order_no,
+			    order_code,
+			    body_code,
+			    chart_no,
+			    emp_no
+			) VALUES (
+			    #{orderNo},
+				#{orderCode},
+				#{bodyCode},
+				#{chartNo},
+			    #{empNo}
+			)
+	
+	</insert>
+	
+	<insert id="createGroupOrder" parameterType="groupOrderVO">
+		<selectKey keyProperty="groupOrderNo" resultType="int" order="BEFORE">
+			select GROUP_ORDER_SEQ.nextval from dual
+		</selectKey>
+			INSERT INTO group_order (
+			    group_order_no,
+			    group_order_name,
+			    emp_no
+			) VALUES (
+			    #{groupOrderNo},
+			    #{groupOrderName},
+			    #{empNo}
+			)
+	</insert>
+	
+	<insert id="insertGroupOrderDetail" parameterType="groupOrderDetailVO">
+		<selectKey keyProperty="groupOrderDetailKey" resultType="int" order="BEFORE">
+			select GROUP_ORDER_DETAIL_SEQ.nextval from dual
+		</selectKey>
+			INSERT INTO group_order_detail (
+			    group_order_detail_key,
+			    group_order_detail_content,
+			    group_order_detail_category,
+			    group_order_no
+			) VALUES (
+			    #{groupOrderDetailKey},
+			    #{groupOrderDetailContent},
+			    #{groupOrderDetailCategory},
+			    #{groupOrderNo}
+			)
+	
+	</insert>
+	
+	<insert id="insertAttachmentGroupInsert" useGeneratedKeys="true">
+		<selectKey keyProperty="attachmentGroupNo" resultType="int" order="BEFORE">
+			select attachment_group_seq.nextval from dual
+		</selectKey>
+			insert 
+				into attachment_group (
+					attachment_group_no
+				)
+				values
+				(
+					#{attachmentGroupNo}
+				)
+				
+	</insert>
+	
+	
+	<insert id="insertChartFile" parameterType="attachmentVO">
+		insert
+		    INTO attachment (
+		        attach_no,
+		        attach_type,
+		        attach_name,
+		        attach_size,
+		        attach_date,
+		        attach_path,
+		        attach_loc,
+		        attachment_group_no
+		    )
+			values(
+				ATTACHMENT_SEQ.NEXTVAL, 
+	            #{attachType},
+	            #{attachName}, 
+	            #{attachSize},
+	            sysdate, 
+	            #{attachPath},
+	            #{attachLoc}, 
+	            #{attachmentGroupNo} 
+			)
+	</insert>
+	
+	<update id="updateChartImgNo" parameterType="attachmentVO">
+		UPDATE 
+			chart
+		 SET 
+		 	attachment_group_no = #{attachmentGroupNo}
+		 WHERE 
+		 	chart_no = #{chartNo}
+	</update>
+	
+	<select id="getPatientInfo" parameterType="int" resultType="memberVO">
+		SELECT
+		    r.receipt_no
+		    ,p.patnt_no
+		    ,m.mem_name
+		    ,m.mem_regno1
+		    ,m.mem_regno2
+		    ,m.mem_address1
+		    ,m.mem_address2
+		    ,m.mem_tel
+		    ,r.emp_no
+		FROM
+		    member  m,
+		    patient p,
+		    receipt r
+		WHERE
+	        p.mem_no = m.mem_no
+	    AND p.patnt_no = r.patnt_no
+	    AND r.receipt_no = #{receiptNo}	
+			
+	</select>
+	
+	<select id="getDoctorInfo" parameterType="int" resultType="empVO">
+		SELECT
+		    m.mem_name,
+		    e.emp_licence,
+		    e.emp_no
+		FROM
+		    member  m,
+		    emp     e,
+		    receipt r
+		WHERE
+		        m.mem_no = e.mem_no
+		    AND e.emp_no = r.emp_no
+		    AND r.receipt_no = #{receiptNo}	
+		
+	</select>
+	<select id="getDiagnosisInfo" parameterType="int" resultType="diseaseVO">
+		SELECT
+		    d.dis_no,
+		    ds.dis_name_kr,
+		    c.chart_record
+		FROM
+		    diagnosis d,
+		    disease   ds,
+		    chart     c,
+		    receipt   r
+		WHERE
+		        c.receipt_no = r.receipt_no
+		    AND c.chart_no = d.chart_no
+		    AND d.dis_no = ds.dis_no
+		    AND r.receipt_no = #{receiptNo}	
+			
+	</select>
+	<insert id="insertDiagnosisPaper" parameterType="diagnosisPaperVO">
+		<selectKey keyProperty="diagnosisPaperNo" resultType="int" order="BEFORE">
+			select DIAGNOSIS_PAPER_SEQ.nextval from dual
+		</selectKey>
+		INSERT INTO diagnosis_paper (
+		    diagnosis_paper_no
+		    ,diagnosis_paper_issue_date
+		    ,diagnosis_paper_content
+		    ,diagnosis_paper_purpose
+		    ,diagnosis_paper_type
+		    ,receipt_no
+		    ,diagnosis_paper_remark
+		    ,diagnosis_paper_diag_date
+		    ,diagnosis_paper_onset_date
+		    ,diagnosis_type
+		) VALUES (
+		    #{diagnosisPaperNo}
+		    ,sysdate
+		    ,#{diagnosisPaperContent}
+		    ,#{diagnosisPaperPurpose}
+		    ,#{diagnosisPaperType}
+		    ,#{receiptNo}
+		    ,#{diagnosisPaperRemark}
+		    ,#{diagnosisPaperDiagDate}
+		    ,#{diagnosisPaperOnsetDate}
+		    ,#{diagnosisType}
+		)
+	</insert>
+	
+	<select id="getDiagnosisPaper" parameterType="int" resultType="diagnosisPaperVO">
+		SELECT
+		    diagnosis_paper_no,
+		    diagnosis_paper_issue_date,
+		    diagnosis_paper_content,
+		    diagnosis_paper_purpose,
+		    diagnosis_paper_type,
+		    receipt_no,
+		    diagnosis_paper_remark,
+		    diagnosis_paper_diag_date,
+		    diagnosis_paper_onset_date,
+		    diagnosis_type
+		FROM
+		    diagnosis_paper
+		where
+		    receipt_no=#{receiptNo}
+	</select>
+	
+	<select id="getClinicNo" parameterType="int" resultType="String">
+		select 
+			clinic_no
+		from 
+			clinic
+		where 
+			emp_no=#{empNo}
+		
+	</select>
+	
+	<select id="getRadiationRec" parameterType="int" resultType="rocRecordVO">
+		SELECT
+		    roc_record_no,
+		    roc_eq_no,
+		    roc_record_content,
+		    roc_record_date,
+		    roc_no,
+		    emp_no,
+		    order_no,
+		    R.attachment_group_no,
+		    chart_no,
+		    A.ATTACH_PATH,
+		    A.ATTACH_NAME,
+		    A.ATTACH_NO
+		FROM
+		    roc_record r
+		LEFT JOIN
+		    ATTACHMENT A ON A.attachment_group_no = R.attachment_group_no
+		where
+		    chart_no=#{chartNo}
+	</select>
+	
+	<select id="getRadiationFile" parameterType="int" resultType="rocRecordVO">
+		SELECT
+		    roc_record_no,
+		    roc_eq_no,
+		    roc_record_content,
+		    roc_record_date,
+		    roc_no,
+		    emp_no,
+		    order_no,
+		    R.attachment_group_no,
+		    chart_no,
+		    A.ATTACH_PATH,
+		    A.ATTACH_NAME,
+		    A.ATTACH_NO
+		FROM
+		    roc_record r
+		LEFT JOIN
+		    ATTACHMENT A ON A.attachment_group_no = R.attachment_group_no
+		where
+		     A.ATTACH_NO=#{attachNo}
+	</select>
+
+
+</mapper>

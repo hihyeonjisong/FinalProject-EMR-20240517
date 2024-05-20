@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.mapper.IHistoryMapper">
+
+	<update id="updateMediCare" parameterType="memberVO">
+	
+		update history
+		set 
+			history_status='HS002'
+		where 
+			receipt_no=#{receiptNo}
+	
+	</update>
+	
+	<update id="updateHistory" parameterType="historyVO">
+		update history
+		set 
+			history_status= #{historyStatus},
+	        history_loc = #{historyLoc}
+		where 
+			receipt_no=#{receiptNo}
+	</update>
+
+
+</mapper>

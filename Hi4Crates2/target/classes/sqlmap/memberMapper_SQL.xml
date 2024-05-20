@@ -1,0 +1,308 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.mapper.MemberMapper">
+	<resultMap type="memberVO" id="memberMap">
+		<id property="memNo" column="MEM_NO"/>
+		<result property="memNo" column="MEM_NO"/>
+		<result property="memId" column="MEM_ID"/>
+		<result property="memPw" column="MEM_PW"/>
+		<result property="memEmail" column="MEM_EMAIL"/>
+		<result property="memName" column="MEM_NAME"/>
+		<result property="memAge" column="MEM_AGE"/>
+		<result property="memGender" column="MEM_GENDER"/>
+		<result property="memRegno1" column="MEM_REGNO1"/>
+		<result property="memRegno2" column="MEM_REGNO2"/>
+		<result property="memTel" column="MEM_TEL"/>
+		<result property="memAddtel" column="MEM_ADDTEL"/>
+		<result property="memAddress1" column="MEM_ADDRESS1"/>
+		<result property="memAddress2" column="MEM_ADDRESS2"/>
+		<result property="memSignupDate" column="MEM_SIGNUP_DATE"/>
+		<result property="memType" column="MEM_TYPE"/>
+		<result property="memSocial" column="MEM_SOCIAL"/>
+		<result property="empJob" column="emp_job"/>
+		<collection property="authList" resultMap="authMap"></collection>
+	</resultMap>
+	
+	<resultMap type="memberAuth" id="authMap">
+		<id property="authNo" column="auth_no"/>
+		<result property="authNo" column="auth_no"/>
+		<result property="memNo" column="mem_no"/>
+		<result property="authName" column="auth_name"/>
+	</resultMap>
+	
+	<select id="readByUserId" parameterType="string" resultMap="memberMap">
+		select 
+		m.mem_no, mem_id, mem_pw, mem_name, mem_signup_date,emp_job, mem_email, a.auth_name
+		from member m left outer join auth a on(m.mem_no = a.mem_no)
+		where mem_id = #{memId}
+	</select>
+
+	<insert id="signup" parameterType="memberVO" useGeneratedKeys="true">
+	<selectKey keyProperty="memNo" order="BEFORE" resultType="int">
+		SELECT MEMBER_SEQ.NEXTVAL as memNo FROM DUAL
+	</selectKey>
+	INSERT INTO MEMBER(
+	    MEM_NO, MEM_ID, MEM_PW, MEM_EMAIL, MEM_NAME,
+	    MEM_AGE, MEM_GENDER, MEM_REGNO1, MEM_REGNO2,
+	    MEM_TEL,MEM_ADDTEL,MEM_POSTCODE, MEM_ADDRESS1, MEM_ADDRESS2,
+	    MEM_SIGNUP_DATE, MEM_TYPE, MEM_SOCIAL, ATTACHMENT_GROUP_NO, MEM_PERMISSION, EMP_JOB
+	    )
+    VALUES
+    	(
+    #{memNo}, #{memId}, #{memPw}, #{memEmail}, #{memName},
+    #{memAge},#{memGender}, #{memRegno1}, #{memRegno2}, #{memTel},#{memAddtel},#{memPostcode}, #{memAddress1},#{memAddress2},
+    SYSDATE, 'MT001', 'N', #{attachmentGroupNo}, 'N', #{empJob}
+    	)
+	</insert>
+	
+	<insert id="pSignup" parameterType="memberVO">
+	<selectKey keyProperty="memNo" order="BEFORE" resultType="int">
+		SELECT MEMBER_SEQ.NEXTVAL FROM DUAL
+	</selectKey>
+	INSERT INTO MEMBER(
+	MEM_NO, MEM_ID, MEM_PW, MEM_EMAIL, MEM_NAME,
+	MEM_AGE, MEM_GENDER, MEM_REGNO1, MEM_REGNO2,
+	MEM_TEL, MEM_ADDTEL, MEM_POSTCODE, MEM_ADDRESS1, MEM_ADDRESS2,
+	MEM_SIGNUP_DATE, MEM_SOCIAL, MEM_TYPE
+	)
+	VALUES
+		(
+	 #{memNo}, #{memId}, #{memPw}, #{memEmail}, #{memName},
+    #{memAge},#{memGender}, #{memRegno1}, #{memRegno2}, #{memTel},#{memAddtel},#{memPostcode}, #{memAddress1},#{memAddress2},
+	SYSDATE, 'N', 'MT002'	
+		)
+	</insert>
+	
+	<select id="checkId" resultType="int">
+		select count(*) from member where mem_ID = #{checkId}
+	</select>
+	
+	<select id="find" parameterType="string" resultType="memberVO">
+		select MEM_NO, MEM_ID, MEM_PW, MEM_EMAIL, MEM_NAME, MEM_AGE, MEM_GENDER, MEM_REGNO1, MEM_REGNO2, MEM_TEL,
+		MEM_ADDTEL, MEM_ADDRESS1, MEM_ADDRESS2, MEM_SIGNUP_DATE, MEM_TYPE, MEM_SOCIAL, MEM_PERMISSION, MEM_WITHDRAW,
+		MEM_WITHDRAW_REASON, MEM_WITHDRAW_DATE
+		from member
+		where MEM_ID = #{memId}
+	</select>
+	
+	<insert id="kakaoInsert" parameterType="memberVO" useGeneratedKeys="true">
+		<selectKey keyProperty="memNo"  order="BEFORE" resultType="int">
+		SELECT
+			MEMBER_SEQ.NEXTVAL
+		FROM
+			DUAL
+		</selectKey>
+		INSERT INTO member (
+    		mem_no, mem_id, mem_pw, mem_email, mem_name, mem_gender, mem_regno1, mem_regno2, mem_tel, mem_social, MEM_TYPE
+		)
+		VALUES (
+		    #{memNo}, #{memId}, #{memPw}, #{memEmail}, #{memName}, #{memGender}, #{memRegno1}, #{memRegno2}, #{memTel}, 'Y', 'MT002'
+		)
+	</insert>
+	
+	<select id="findId" parameterType="memberVO" resultType="string">
+		select mem_id from member
+		where mem_name = #{memName} and mem_tel = #{memTel}
+	</select>
+	
+	<select id="checkCount" parameterType="memberVO" resultType="String">
+		select mem_pw from member
+		where mem_name = #{memName} and mem_Id = #{memId} and mem_email = #{memEmail}
+	</select>
+	
+	<update id="updatePw" parameterType="memberVO">
+		UPDATE member
+		SET mem_pw = #{memPw}
+		WHERE mem_name = #{memName}
+		AND mem_id = #{memId}
+		AND mem_email = #{memEmail}
+	</update>
+	
+	<select id="getSearchList" resultType="memberVO"> 
+	SELECT * FROM member 
+	WHERE 
+		mem_name LIKE '%' || #{searchName} || '%' 
+		and mem_type = 'MT002' 
+	</select>
+	<select id="getChartRecordList" resultType="chartVO"> 
+		select 
+			c.chart_no, chart_date, d.mem_name, c.patnt_no ,dd.dis_name_kr 
+		from 
+			chart c, receipt r, emp e, member d, patient p ,diagnosis d, disease dd
+		where 
+			c.receipt_no = r.receipt_no 
+		and r.emp_no = e.emp_no 
+		and e.mem_no = d.mem_no 
+		and c.patnt_no = p.patnt_no 
+        and c.chart_no = d.chart_no
+        and d.dis_no = dd.dis_no
+		and p.mem_no = #{memNo}
+	</select>
+	<select id="getParticularList" resultType="particularVO"> 
+		select 
+			particular_description, particular_date, particular_writer 
+		from 
+			patient_particular 
+		where 
+			patnt_no = (select patnt_no from patient where mem_no = #{memNo}) 
+	</select>
+	<select id="getPatntInfo" resultType="memberVO"> 
+		select 
+			m.MEM_NO, MEM_ID, MEM_PW, MEM_EMAIL, 
+			MEM_NAME, MEM_AGE, MEM_GENDER, MEM_REGNO1, 
+			MEM_REGNO2,	MEM_TEL, MEM_ADDTEL, MEM_ADDRESS1, 
+			MEM_ADDRESS2, MEM_SIGNUP_DATE, MEM_TYPE, MEM_SOCIAL, 
+			MEM_PERMISSION, MEM_WITHDRAW, MEM_WITHDRAW_REASON, MEM_WITHDRAW_DATE,
+			PATNT_NO
+			from member m, patient p
+			where m.mem_no = p.mem_no
+			and p.mem_no = #{memNo}
+	</select>
+	<select id="getProtector" resultType="protectorVO"> 
+		select 
+			protector_name, protector_tel, protector_relate, protector_date 
+		from protector 
+		where patnt_no = (select patnt_no from patient where mem_no = #{memNo})
+		and rownum=1 
+	</select>
+	
+	<select id="getMemId" resultType="String">
+		select
+			mem_id
+		from
+			member m, emp e
+		where
+			e.mem_no = m.mem_no
+		and
+			e.emp_no = #{empNo}
+	</select>
+		
+	<select id="getReqPermissionList" resultType="memberVO">
+		SELECT 
+		    MEM_NO
+		    , MEM_NAME
+		    , EMP_JOB
+		    , MEM_ID
+		    , MEM_EMAIL
+		    , MEM_AGE
+		    , MEM_GENDER
+		    , MEM_TEL
+		    , MEM_SIGNUP_DATE
+		    , MEM_REGNO1
+		    , MEM_REGNO2
+		FROM
+		    MEMBER
+		WHERE
+		    MEM_PERMISSION = 'N'
+	</select>
+	
+	<select id="getEmpList" resultType="memberVO">
+		select * from member
+		where mem_type = 'MT001'
+	</select>
+	
+	<select id="getMemberInfo" resultType="memberVO">
+		SELECT
+		    mem_no,
+		    mem_id,
+		    mem_pw,
+		    mem_email,
+		    mem_name,
+		    mem_age,
+		    mem_gender,
+		    mem_regno1,
+		    mem_regno2,
+		    mem_tel,
+		    mem_addtel,
+		    mem_address1,
+		    mem_address2,
+		    mem_signup_date,
+		    mem_type,
+		    mem_social,
+		    mem_permission,
+		    mem_withdraw,
+		    mem_withdraw_reason,
+		    mem_withdraw_date,
+		    M.attachment_group_no,
+		    mem_postcode,
+		    emp_job,
+		    A.ATTACH_PATH,
+		    A.ATTACH_NAME
+		FROM
+		    member M
+		LEFT JOIN
+		    ATTACHMENT A ON A.ATTACHMENT_GROUP_NO = M.ATTACHMENT_GROUP_NO
+		WHERE
+			MEM_NO = #{memNo}
+	</select>
+	
+	<select id="getOnlineList" resultType="memberVO">
+		SELECT 
+		      M.MEM_NO
+		    , M.MEM_NAME
+		    , E.EMP_NO
+		    , E.EMP_JOB
+		    , A.ATTACH_NAME
+		    , A.ATTACH_PATH
+		FROM
+		    MEMBER M
+		INNER JOIN
+		    EMP E ON E.MEM_NO = M.MEM_NO
+		LEFT JOIN
+		    ATTACHMENT A ON A.ATTACHMENT_GROUP_NO = M.ATTACHMENT_GROUP_NO
+		WHERE
+		    M.MEM_TYPE ='MT001'
+		AND
+		    E.EMP_STATUS = 'ES001'
+	</select>
+	
+	<select id="getMasterNo" resultType="int">
+		SELECT
+		    M.MEM_NO
+		FROM 
+		    MEMBER M
+		INNER JOIN
+			EMP E ON E.MEM_NO = M.MEM_NO
+		WHERE
+    		E.EMP_JOB = '원무과장'
+	</select>
+	<select id="getMemNo" resultType="int">
+		SELECT
+			M.MEM_NO
+		FROM
+			MEMBER M
+		INNER JOIN 
+			EMP E ON M.MEM_NO = E.MEM_NO
+		WHERE
+			E.EMP_NO = #{empNo}
+	</select>
+	
+	<select id="getPartiInfo" resultType="memberVO">
+		SELECT
+		      MEM_NAME
+		    , MEM_AGE
+		    , MEM_GENDER
+		    , MEM_REGNO1
+		FROM
+		    MEMBER M
+		INNER JOIN
+		    PATIENT P ON P.MEM_NO = M.MEM_NO
+		WHERE
+		    P.PATNT_NO = #{partiTargetNo}
+	</select>
+	
+	<select id="getReceiptMemNo" resultType="int">
+		SELECT
+		    M.MEM_NO
+		FROM
+		    MEMBER M
+		INNER JOIN
+		    EMP E ON E.MEM_NO = M.MEM_NO
+		INNER JOIN
+		    RECEIPT R ON R.EMP_NO = E.EMP_NO
+		WHERE
+		    R.RECEIPT_NO = #{receiptNo}
+	</select>
+</mapper>

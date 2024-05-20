@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.mapper.IVacationMapper">
+	<select id="getVacationRequestMine" resultType="vacationRequestVO">
+		SELECT 
+            V.VACATION_REQUEST_NO
+		    , V.VACATION_START_DATE
+		    , V.VACATION_END_DATE
+		    , V.VACATION_DATE
+		    , V.VACATION_REQUEST_DATE
+		    , V.VACATION_REASON
+		    , V.VACATION_REQUEST_STATUS
+            , VR.VACATION_RESULT_DISAGREE
+		FROM 
+	    	VACATION_REQUEST V
+		LEFT JOIN
+            VACATION_RESULT VR ON V.VACATION_REQUEST_NO = VR.VACATION_REQUEST_NO
+        WHERE
+            V.EMP_NO = (SELECT EMP_NO FROM EMP WHERE MEM_NO=#{memNo})
+	</select>
+	
+	<insert id="vacationRequest">
+		insert into VACATION_REQUEST
+			(
+				VACATION_REQUEST_NO, VACATION_START_DATE, VACATION_END_DATE,
+				VACATION_DATE, VACATION_REQUEST_DATE, EMP_NO, VACATION_REASON
+			)
+			VALUES
+			(
+				VACATION_REQUEST_SEQ.NEXTVAL, #{vacationStartDate}, #{vacationEndDate},
+				#{vacationDate}, sysdate, (select emp_no from emp where mem_no = #{memNo}), #{vacationReason}
+			)
+	</insert>
+	
+	<select id="getVacationReqList" resultType="vacationRequestVO">
+		SELECT 
+		    M.MEM_NO
+		    , VACATION_REQUEST_NO
+		    , MEM_NAME
+		    , E.EMP_JOB
+		    ,VACATION_START_DATE
+		    , VACATION_END_DATE
+		    , VACATION_DATE
+		    , EMP_VACATION
+		    , E.EMP_NO
+		    , VACATION_REQUEST_DATE
+		    , VACATION_REASON 
+		FROM
+		    MEMBER M, EMP E, VACATION_REQUEST V
+		WHERE 
+		    E.EMP_NO = V.EMP_NO
+		AND
+		    M.MEM_NO = E.MEM_NO
+		AND
+		    VACATION_REQUEST_STATUS IS NULL
+	</select>
+	
+	<update id="updateRequest">
+		update 
+			vacation_request
+		set
+			vacation_request_status = #{vacationRequestStatus}
+		where
+			vacation_request_no = #{vacationRequestNo}
+	</update>
+	
+	<insert id="insertAgreeResult">
+		insert into vacation_result
+			(
+				vacation_result_no, vacation_result_date, vacation_result_agree, vacation_request_no, emp_no
+			)
+			values
+			(
+				vacation_result_seq.nextval, sysdate, 'Y', #{reqNo}, 1
+			)
+	</insert>
+	
+	<select id="getVacation" resultType="vacationRequestVO">
+		select * from vacation_request where vacation_request_no = #{reqNo}
+	</select>
+	
+	<update id="updateEmpVacation">
+		UPDATE
+			EMP
+		SET
+			EMP_VACATION = EMP_VACATION - #{vacationDate}
+		WHERE
+			EMP_NO = #{empNo}
+	</update>
+	
+	<insert id="insertDisagreeResult">
+		INSERT INTO VACATION_RESULT
+			(
+				VACATION_RESULT_NO, VACATION_RESULT_DATE, VACATION_RESULT_DISAGREE, VACATION_REQUEST_NO, EMP_NO
+			)
+			VALUES
+			(
+				VACATION_RESULT_SEQ.NEXTVAL, SYSDATE, #{vacationResultDisagree}, #{vacationRequestNo}, 1
+			)
+	</insert>
+	
+
+
+</mapper>

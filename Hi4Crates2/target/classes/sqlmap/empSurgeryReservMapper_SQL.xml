@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.mapper.ISurgeryMapper">
+	
+<!-- 	<resultMap type="surgeryReservVO" id="surgeryReservMap"> -->
+<!-- 		<id property="surgeryReservationNo" column="SURGERY_RESERVATION_NO"/> -->
+<!-- 		<result property="surgeryReservationNo" column="SURGERY_RESERVATION_NO"/> -->
+<!-- 		<result property="surgeryReservationDate" column="SURGERY_RESERVATION_DATE"/> -->
+<!-- 		<result property="surgeryReservationTime" column="SURGERY_RESERVATION_TIME"/> -->
+<!-- 		<result property="surgeryRoomStatus" column="SURGERY_ROOM_STATUS"/> -->
+<!-- 		<result property="orderNo" column="ORDER_NO"/> -->
+<!-- 		<result property="patientNo" column="PATNT_NO"/> -->
+<!-- 		<result property="surgeryDoctor" column="SURGERY_DOCTOR"/> -->
+<!-- 	</resultMap> -->
+
+	
+<!-- 	<insert id="insertSurgeryReserv"> -->
+<!-- 		<selectKey keyProperty="surgeryReservationNo" resultType="int" order="BEFORE"> -->
+<!-- 			select SURGERY_RESERVATION_SEQ.nextval from dual -->
+<!-- 		</selectKey> -->
+<!-- 		insert into SURGERY_RESERVATION ( -->
+<!-- 			SURGERY_RESERVATION_NO -->
+<!-- 			, SURGERY_RESERVATION_DATE -->
+<!-- 			, SURGERY_RESERVATION_TIME -->
+<!-- 			, SURGERY_ROOM_STATUS -->
+<!-- 			, ORDER_NO -->
+<!-- 			, PATNT_NO -->
+<!-- 			, SURGERY_DOCTOR -->
+<!-- 		) values ( -->
+<!-- 			#{surgeryReservationNo} -->
+<!-- 			, #{surgeryReservationDate} -->
+<!-- 			, #{surgeryReservationTime} -->
+<!-- 			, #{surgeryRoomStatus } -->
+<!-- 			, #{orderNo} -->
+<!-- 			, #{patnt_no} -->
+<!-- 			, #{surgeryDoctor} -->
+<!-- 		) -->
+<!-- 	</insert> -->
+	
+<!-- 	<select id="selectSurgeryReservCount" parameterType="pagingVO" resultType="int"> -->
+<!-- 		select count(SURGERY_RESERVATION_NO) -->
+<!-- 		from SURGERY_RESERVATION -->
+<!-- 		where 1=1 -->
+<!-- 	</select> -->
+	
+<!-- 	<select id="selectSurgeryReservList" parameterType="pagingVO" resultType="surgeryReservVO"> -->
+<!-- 		select -->
+<!-- 			b.* -->
+<!-- 		from ( -->
+<!-- 			select -->
+<!-- 				a.*, row_number() over(order by a.SURGERY_RESERVATION_NO desc) rnum -->
+<!-- 			from ( -->
+<!-- 				select -->
+<!-- 					SURGERY_RESERVATION_NO -->
+<!-- 					, SURGERY_RESERVATION_DATE -->
+<!-- 					, SURGERY_RESERVATION_TIME -->
+<!-- 					, SURGERY_ROOM_STATUS -->
+<!-- 					, ORDER_NO -->
+<!-- 					, PATNT_NO -->
+<!-- 					, SURGERY_DOCTOR -->
+<!-- 				from SURGERY_RESERVATION -->
+<!-- 				where 1=1 -->
+<!-- 				order by SURGERY_RESERVATION_NO desc -->
+<!-- 			) a -->
+<!-- 		) b -->
+<!-- 		<![CDATA[ -->
+<!-- 			where b.rnum >= #{startRow} and b.rnum <= #{endRow} -->
+<!-- 		]]> -->
+<!-- 	</select> -->
+	
+	
+	
+	<!-- 수술 종류 검색 -->
+	<!-- 수술 종류 검색 -->
+	<!-- 수술 종류 검색 -->
+<!-- 	<resultMap type="surgeryKindVO" id="surgeryKindMap"> -->
+<!-- 		<id property="surgeryKindCode" column="SURGERY_KIND_CODE"/> -->
+<!-- 		<result property="surgeryKindCode" column="SURGERY_KIND_CODE"/> -->
+<!-- 		<result property="surgeryKindName" column="SURGERY_KIND_NAME"/> -->
+<!-- 		<result property="surgeryKindPrice" column="SURGERY_KIND_PRICE"/> -->
+<!-- 		<result property="surgeryHospitalize" column="SURGERY_HOSPITALIZE"/> -->
+<!-- 	</resultMap> -->
+	
+<!-- 	<sql id="searchSurgeryKind"> -->
+<!-- 		<if test="surgerySearchWord != null"> -->
+<!-- 			and ( (surgery_kind_code like '%'||#{surgerySearchWord}||'%') -->
+<!-- 			or (surgery_kind_name like '%'||#{surgerySearchWord}||'%') ) -->
+<!-- 		</if> -->
+<!-- 	</sql> -->
+	
+<!-- 	<select id="getSurgeryKindList" parameterType="String" -->
+<!-- 		resultMap="surgeryKindMap"> -->
+<!-- 		SELECT -->
+<!-- 			surgery_kind_code -->
+<!-- 		  , surgery_kind_name -->
+<!-- 		  , surgery_kind_price -->
+<!-- 		  , surgery_hospitalize -->
+<!-- 		FROM -->
+<!-- 			surgery_kind -->
+<!-- 		WHERE 1 = 1 -->
+<!-- 			<if test="surgerySearchWord != null"> -->
+<!-- 				and ( (surgery_kind_code like '%'||#{surgerySearchWord}||'%') -->
+<!-- 				or (surgery_kind_name like '%'||#{surgerySearchWord}||'%') ) -->
+<!-- 			</if> -->
+<!-- 		ORDER BY SURGERY_KIND_CODE -->
+<!-- 	</select> -->
+	<!-- 수술 종류 검색 끝-->
+	<!-- 수술 종류 검색 끝-->
+	<!-- 수술 종류 검색 끝-->
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+
+	
+	
+	
+	
+</mapper>

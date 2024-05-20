@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.mapper.ICollaborationMapper">
+
+	<insert id="reqcollaboration" parameterType="collaborationReqVO">
+		<selectKey keyProperty="collaboReqNo" resultType="int" order="BEFORE">
+			SELECT COLLABORATION_REQ_SEQ.NEXTVAL FROM DUAL
+		</selectKey>
+		INSERT INTO collaboration_req (
+		    collabo_req_no
+		    ,collabo_req_date
+		    ,collabo_req_content
+		    ,emp_no
+		    ,collabo_dr
+		    ,patnt_no
+		) VALUES (
+		    #{collaboReqNo}
+		    ,sysdate
+		    ,#{collaboReqContent}
+		    ,(SELECT EMP_NO FROM EMP WHERE MEM_NO = #{empNo})
+		    ,#{collaboDr}
+		    ,#{patntNo}
+		)
+			
+	</insert>
+	<update id="updateHistory">
+		UPDATE
+		    "HISTORY"
+		SET
+		      HISTORY_LOC = (SELECT CLINIC_NO FROM CLINIC WHERE EMP_NO = #{collaboDr})
+		    , HISTORY_STATUS = 'HS001'
+		WHERE
+		    RECEIPT_NO = #{receiptNo}
+	</update>
+	<update id="updateReceipt">
+		UPDATE
+		    RECEIPT
+		SET
+		    EMP_NO = #{collaboDr},
+		    RECEIPT_STATUS = 'RS001'
+		WHERE
+		    RECEIPT_NO = #{receiptNo}
+	</update>
+
+</mapper>

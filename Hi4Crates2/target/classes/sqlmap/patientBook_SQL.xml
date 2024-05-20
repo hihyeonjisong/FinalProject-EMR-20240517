@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.mapper.IPatientBookMapper">
+	
+	<select id="doctor" resultType="MemberVO" parameterType="String">
+		SELECT DISTINCT
+		E.EMP_NO,
+		M.MEM_NAME,
+        C.CODE_NAME,
+        E.EMP_DEPARTMENT
+		FROM
+		EMP E
+		JOIN
+		member m ON e.mem_no = m.mem_no
+        INNER JOIN
+        CLINIC CN ON CN.EMP_NO = E.EMP_NO
+        INNER JOIN
+        COMMON_CODE C ON C.CODE_NO = CN.CLINIC_NO
+		LEFT JOIN
+		calendar c ON c.emp_no = e.emp_no
+		AND c.calendar_title = '연가'
+		 AND #{date} BETWEEN c.CALENDAR_STARTDATE AND c.CALENDAR_ENDDATE
+		WHERE
+		c.emp_no IS NULL
+		and m.emp_job='의사'
+</select>                                                            
+	
+	<select id="time" resultType="clinicReservationVO" parameterType="clinicReservationVO">
+		SELECT reserv_time, emp_no
+		FROM clinic_reservation
+		WHERE emp_no = #{empNo} AND reserv_date = #{reservDate}
+	</select>
+	
+	<select id="name" resultType="String" parameterType="clinicReservationVO">
+		select 
+		    mem_name
+		from member
+		where mem_no = #{memNo}
+	</select>
+	
+	<select id="phone" parameterType="clinicReservationVO" resultType="String">
+		select
+			mem_tel
+		from member
+		where mem_no = #{memNo}
+	</select>
+	
+	<select id="doctorName" parameterType="clinicReservationVO" resultType="String">
+		select m.mem_name
+		    from member m, emp e
+		where m.mem_no = e.mem_no
+		and e.emp_no = #{empNo}
+	</select>
+	
+<!-- 	<insert id="insert" parameterType="clinicReservationVO"> -->
+<!-- 		INSERT INTO clinic_reservation ( -->
+<!-- 		    reserv_no, reserv_date, reserv_time, reserv_memo, emp_no, mem_no, calendar_key -->
+<!-- 		) VALUES ( -->
+<!-- 		    CLINIC_RESERVATION_SEQ.NEXTVAL, -->
+<!-- 		    #{reservDate}, -->
+<!-- 		    #{reservTime}, -->
+<!-- 		    null, -->
+<!-- 		    #{empNo}, -->
+<!-- 		    #{memNo}, -->
+<!-- 		    CALENDAR_SEQ.NEXTVAL -->
+<!-- 		) -->
+<!-- 	</insert> -->
+	
+</mapper>
